@@ -3260,3 +3260,23 @@ singleton cover sources, and count only operations already performed by the
 retention setup. No additional index lookup, policy or timing claim is introduced.
 Artifacts: native-retained-prefilter{,-confirm}/{audit.json,independent-raw-audit.json};
 native-retained-prefilter/interpretation.json. Original user source remains exact.
+
+## Cached singleton prototype: first fixture failure isolated before measurement
+
+The source package freezes as cached-singleton-cover.patch 5259ace2, manifest
+de7a5d45, with about 140 added production lines and one cached-API fixture. Root
+and independent source review accept the exact ten-patch base, full-PK proof,
+separate planning state, both-family registration and fresh-header selection.
+Builder manifest 093806eb pins 15 files/eleven patches and expects 176 core tests
+in off/control/select modes plus 19 bridge tests. No timing run has occurred.
+
+The first build fails in OFF mode: 175 tests pass, the new fixture expects zero
+matches and observes one. No candidate binary is created. Saved worktree/index/
+status restoration is byte-exact, independently verified. A focused rerun of the
+unchanged frozen fixture with RUST_BACKTRACE=1 locates the failure at its final
+constant-only witness deletion, query/tests.rs line682. All earlier empty/growth,
+header-intersection and stale R/S cases pass before that assertion. The focused
+rerun also restores the original source exactly. A minimal production-base
+reproduction is being prepared; no cause or candidate correctness conclusion is
+assumed yet. Frozen failed source and logs remain intact under
+cached-singleton-cover-build and cached-singleton-cover-fixture-debug.
