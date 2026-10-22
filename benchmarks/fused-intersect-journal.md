@@ -2338,3 +2338,34 @@ production condition.
 
 Artifacts: selected-unroll-timing/independent-timing-audit.json/.txt and raw runs;
 selected-unroll-timing-prepared/manifest.json. No production planner change.
+
+## Shared scalar-ordering production candidate rejected on CYK
+
+The full shared-candidate root11 screen completes 330 timed processes with
+verified provenance. Summed wall improves 0.109%, while geometric mean is
++0.0117% and arithmetic mean +0.0235%; seven case means improve. These aggregates
+hide CYK's 27.4319 -> 28.6671 ms (+4.503%), +4.674% paired median, all fifteen
+pairs slower. Both orders lose (+4.754%/+4.215%). Hard128 is +0.680% and Whisper
++0.445%; Luminal, eggcc and Qwen improve 1.518%/1.139%/0.800%. No timing shift
+on default no-decomp GJ is attributed to probe work, since the sort is inactive.
+
+A focused CYK repeat reverses the starting order. All fifteen pairs again lose:
+29.2019 -> 30.9851 ms (+6.106%), paired median +4.882%, both orders positive.
+Combined, with all sixty timed process records retained, thirty pairs show
++5.330% mean and +4.836% paired median. Both balanced fifteen-pair order groups
+lose (+4.985%/+5.672%), and every individual pair is slower. The code-size
+reduction is real but did not produce an acceptable production regression profile.
+There is no established causal explanation beyond the measured binary comparison.
+
+Separate correctness oracles accept all 22 reports and 140,236 ordered entries,
+including full counts/changed/updated/can_stop/aggregate counts and nonempty final
+table-size maps. No eggcc exception is required. The standalone flag-free scalar
+sort, including the shared-helper variant, is rejected for production. Both
+patches and their fixtures remain unapplied; the exact original user source diff
+is preserved. Shared-candidate math12/external81 are deliberately not run after
+this confirmed material regression. Native ordering remains a useful measured
+prototype for future combined planner experiments, not a retained change.
+
+Artifacts: scalar-only-shared-sort-root11-independent.json/.txt,
+scalar-only-shared-sort-root11-oracles-independent.json/.txt,
+scalar-only-shared-sort-cyk-repeat-independent.json/.txt under /tmp/fused-lab.
