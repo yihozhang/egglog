@@ -2032,3 +2032,58 @@ Artifacts: native-probe-order-feedback/independent-feedback-audit.json/.txt,
 journal-ready-independent.txt, native-feedback-interpretation.json/.txt;
 probe-order-feedback/feedback-policy.patch. All experiment code remains
 temporary; the production workspace retains only the original user edits.
+
+## Scalar-only ordering passes the discovery screen, pending confirmation
+
+The next policy sorts by Prober.len only when every requested probe has width
+one. Mixed-width stages retain their original order. Construction and original
+key/prepared ordinals are unchanged, and the execution loop plus all following
+source is byte-identical to the base: no feedback macro, duplicate traversal or
+per-row mode branch remains. All 175 core tests pass in seven configurations;
+formatting passes, and the exact original source diff is restored. Frozen
+egglog-probe-order-scalar-only SHA f3ee3b7ae8e681793850da867777ad99732d4184770e2ba0c318f69fd06030e1;
+policy 16e3693d, builder eb08f559, unchanged fixture 94dab1a3.
+
+All 240 runs and 847,320 ordered entries pass the hardened audit, twelve
+complete native panels with zero exclusions. All own-prior and within-strategy
+counts, changed flags and size fingerprints are exact. Same CPU24/j1/no-decomp,
+three timed/two warmup runs, resource limits and provenance checks apply. Only
+same-binary comparisons are used.
+
+Against original ordering, Llama/Qwen live-MinCover query improves
+2.500%/2.551% and wall 1.925%/2.036%, all three pairs and both execution orders.
+The Min GEMM pair improves about 25% in both models, binary pair-fuse about
+19-21%, and batch-collapse about 15-19%. Pure GEMM gains are smaller (2.812%/
+1.716%), as are Pure whole-query changes (Llama -0.806%, all three; Qwen
+-0.480%, two of three). RMS Pure target falls 5.623 -> 4.799 ms (-14.655%),
+all three pairs, essentially retaining length ordering's benefit.
+
+Eggcc live-MinCover helper costs 462.858/488.115/461.417/459.139 ms for
+off/length/scalar-first/scalar-only. Scalar-only removes length ordering's
+regression: -28.976 ms (-5.936%), all three pairs and both orders. Zero-output
+entries save 24.928 ms and positive entries 4.048 ms. Against original, helper
+and whole-query gains are small (-0.804%/-0.415%), although all three pairs
+improve. Against scalar-first, the helper mean improves 0.494% but only one
+of three pairs; do not present that comparison as established.
+
+Pure eggcc gives back length ordering's helper benefit: scalar-only 50.699 ms
+versus length 44.911 ms, +12.888%, every pair; it barely beats original
+51.335 ms (-1.238%). The apparent whole-query -6.529% against original is
+dominated by one off run's Gamma/ival rule (196.486 ms versus 151.433/152.312
+in the other off runs). Whole-query pair changes are -0.843/-16.584/-0.111%,
+median -0.843%; this is not evidence of a repeatable 6.5% gain.
+
+There is no clear original-relative regression in this screen. Hard32 Pure
+and CYK Min mean query changes are only +0.219%/+0.131% with mixed signs.
+Whisper beta targets remain slightly slower (+1.039%/+1.418%) with mixed pairs.
+This is discovery evidence, not promotion: confirm original versus scalar-only
+with five timed pairs on the native panels, then recheck the all-scalar PK
+Ramp panels with the same frozen binary. Default GJ still does not reach this
+filtered stage policy. Separately revisit saved MinCover/PureSize wins against
+GJ to find a planning opportunity; six zero-output loop-unroll rules are a
+small outstanding candidate, not yet a selectively measured win.
+
+Artifacts: native-probe-order-scalar-only/independent-scalar-only-audit.json/.txt,
+journal-ready-independent.txt, native-scalar-only-interpretation.json/.txt;
+probe-order-scalar-only/scalar-only-policy.patch. No experimental production
+code is retained yet.
