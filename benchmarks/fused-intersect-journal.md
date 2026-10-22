@@ -4344,3 +4344,100 @@ constant-key-activation-prepared/runner-manifest.json;
 constant-key-activation-diagnostics/{audit.json,independent-raw-audit.json,
 independent-acceptance-note.txt,runtime-counter-interpretation.json,
 runtime-counter-interpretation.txt}; native-win-followup-overlap-assessment.txt.
+
+
+## Original-key placement gives a partial Sum gain, still loses to GJ
+
+A distinct placement-only ablation is now complete. Frozen patch d9d1e8fc
+(manifest bfbbf394) adds 54 net production lines in plan.rs over exact FIRST3+
+constant-key V2. It preselects identical size/AtomId winners using a cloned
+used-variable state, reserves their private payloads, and emits each group at
+its original GJ varying-key position. Prefix mode remains the default. A
+focused structural test covers competing winners/ties, reversed size/key order,
+early private payloads and interleaved scalar gates. The independent relational
+action-multiset/count/output oracle now exercises both placements and an actual
+constrained follower stage crossing, at one/four workers. Normal first-use
+constraint ownership can move to that earlier stage; no constraint is removed.
+
+Root build49252 passes 172 core tests each under strict GJ, prefix, and positioned
+controls, all 19 bridge tests and formatting. The actual Cargo artifact is frozen
+as egglog-constant-key-placement, SHA 0d76c831. Independent audit verifies the
+five-patch stack and exact source/index/status/original-user-diff restoration.
+The runtime helper, query routing and executor fixtures are inherited unchanged.
+
+Six untimed plan captures (runner b8921134,149 pins) pass primary and independent
+raw audits: 14,946 entries with exact own modern/fresh/pilot/cross outputs.
+GJ/prefix reproduce their full archived programs. Positioned mode preserves
+reported selected cover/probe/binding instructions and all live-variable
+multisets; unrelated original-GJ instructions retain exact relative order.
+Reports hide slow constraint ownership, so conservation there rests on source
+and the interleaved oracle, not reported ScanSpec equality. DVO physical order
+and helper activation are not established by these plans.
+
+Root Llama retains 305 selected entries/332 covers, all zero-output. Placement
+changes 278 cublaslt entries across eight descriptions (?out_shape moves0->9);
+27 batchmatmul entries stay unchanged. Legacy retains155 entries/508 covers,
+149 zero and six positive. Only Mul85/Sum49 change placement. Mul's ?a/dtype
+stage restores4->1 and stride groups1/2/3->2/4/5. Sum restores ?a/dtype4->2,
+strides1/2->3/4. Each intended rule retains225 matches. The other21 selected
+legacy entries keep their prefix programs.
+
+The uninstrumented timing pilot uses the same0d76 binary, two warmup triples
+and three rotating timed triples per input:30 processes/74,730 entries,CPU24/
+j1/--no-decomp/20s/32GiB. Frozen plan6e850f6d pins182 artifacts. Every arm appears
+in each timed position once; pair order is2/1 within each case and mirrored
+across cases without pooling. A is strictGJ/DEFER0/helper0; B/C are constant-key
+planner/DEFER1/helper1, differing only IN_PLACE0/1; LIVE0/BRIDGE0 throughout.
+All reports pass full own/cross oracles; no exclusion. Independent audit
+recomputes5,016 statistic blocks and comparison-specific changed-program sets.
+Process wall includes report production. No diagnostic timing enters results.
+
+| Input | GJ query | Prefix query | Positioned query | Positioned/prefix query | Positioned/GJ query | Positioned/GJ process wall |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Root Llama | 36.587ms | 36.685ms | 36.886ms | +0.548% | +0.817% | +0.378% |
+| Legacy Luminal Llama | 6.245ms | 21.324ms | 20.365ms | -4.499% | +226.126% | +14.193% |
+
+Legacy placement improves query/wall versus prefix in all three pairs and both
+orders (-4.499%/-0.835%), but loses both netGJ metrics in every pair/order.
+Root placement query is mixed and flips sign by order; wall loses0.651% in all
+three pairs. Root net metrics are mixed. Its0.200968ms placement query increase
+is95.28% unchanged-program residual; the278 changed entries add only0.009495ms.
+Thus no whole-query causal regression is assigned to changed instructions.
+
+Legacy saves0.959411ms query versus prefix. The134 changed intended entries
+save0.950297ms:130 zero entries save0.966962ms while four positives add0.016666ms
+(aggregate slower all three pairs). Sum contributes0.943261ms of the saving,
+-19.721% in all pairs/both orders, almost entirely zero-output work. Mul saves
+only0.007036ms, mixed with an order-sign flip. Its large opposing entry changes
+show why an aggregate near-zero result is insufficient: (49,3) saves0.335157ms
+but (49,5) adds0.326424ms; (22,4) saves0.267854ms but (22,6) adds0.264550ms,
+each direction consistent in all three pairs. Sum's largest zero gains are
+(57,6)-0.184224ms,(63,5)-0.181263ms,(49,5)-0.150780ms,all three pairs.
+
+The net positioned/GJ query loss remains14.120543ms. Intended Mul/Sum contribute
+14.103882ms (99.88%), with13.623163ms in zero-output entries and0.480719ms in
+four positive entries. Positive Mul/Sum aggregate costs still increase83.22%/
+121.77% versusGJ, each slower all three pairs. Placement is rejected as a net
+plan; there is no broader screen or promotion. The next useful observation is
+whether the Sum gains and opposing Mul entries change actual stage-call work
+or only ordering/setup costs; static position alone does not answer that.
+
+A separate read-only source/archive check finds no exact private-payload credit
+exclusion trial. Such a change would alter the width-based refinement UPDATE,
+not the previously tested maximum-input READ or prefix/cadence policies. But
+these selected nth covers have no remaining atom reader after their group is
+chosen, so removing their private-payload credit cannot change the initial
+sort. It could matter only when recursive logical-prefix seeding credits a
+still-physically-pending group. Current activation counters do not record that
+condition; no policy is implemented on this unobserved hypothesis.
+
+Artifacts: constant-key-placement/{placement.patch,manifest.json,README.txt};
+constant-key-placement-build/{manifest.json,independent-build-audit.json};
+constant-key-placement-plans-prepared/runner-manifest.json;
+constant-key-placement-plans/{audit.json,independent-raw-audit.json,
+static-placement-interpretation.json,journal-ready-placement-plans.txt};
+constant-key-placement-performance-pilot-prepared/plan.json;
+constant-key-placement-performance-pilot/{audit-screen.json,
+independent-raw-audit.json,independent-rule-interpretation.json,
+independent-rule-interpretation.txt};interpret-constant-key-placement-pilot.py;
+runtime-private-payload-credit-overlap.txt.
