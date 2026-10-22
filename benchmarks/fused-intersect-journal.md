@@ -2241,3 +2241,53 @@ still need measurement; no change is retained yet.
 Artifacts: scalar-only-production-hard128-repeat-independent.json/.txt;
 scalar-only-code-layout/evidence-note.txt, evidence.json, sort-call-evidence.json
 and per-symbol disassemblies. All paths are under /tmp/fused-lab.
+
+## Gamma runtime counters: no extra probe work from scalar ordering
+
+A bounded temporary diagnostic observes only the exact Gamma/ival rule's
+two-scalar-probe stage, with fixed local counters and no new lookups, clocks or
+policy changes. All 175 core tests pass in three configurations and the exact
+source/index/status are restored. Two untimed full-Pure runs (off/scalar-only)
+preserve 10,502 ordered entries, fourteen target entries, aggregate counts,
+changed/updated/can_stop and final sizes; every counter invariant passes.
+Instrumented timing is excluded from performance evidence.
+
+The stage executes six times, all in iteration109, and visits 44 cover rows in
+both modes. It completes 24 cover frames, which are not final rule matches.
+VVO is SmallColumn and Project is PackedColumn; both use Owned sources in all
+six acquisitions. Original length pairs are (4,8), (7,8), then four (7,4).
+Scalar-only keeps the first two orders and reverses the last four, with no ties.
+At ordinal2, Project rejects all four rows and avoids four VVO lookups. The
+other outcomes agree: attempts fall 72 -> 68, failures remain twenty, and no
+extra cover rows or completed frames appear. The small uninstrumented Gamma
+loss therefore is not explained by additional probe work. Effects elsewhere
+in the rule or surrounding workload remain unmeasured; no length threshold
+or special-case policy follows from this diagnostic.
+
+Artifacts: gamma-probe-runtime-trace/{README.txt,runner-manifest.json,build.py,
+collect.py,audit.py}; gamma-probe-runtime-build/manifest.json;
+gamma-probe-runtime-diagnostics/audit.json. Diagnostic binary SHA
+8f56ae507f642107062ba8f098e427227731cf35cb0947247762eaa86750aa5c.
+
+The separate shared-sort production replacement also passes all 167 core and
+19 bridge tests plus formatting and restores the source exactly. It uses one
+lifetime-only helper and no inline attributes; the eligibility check and row
+loop match the earlier scalar-only candidate. Binary SHA
+8c3b76399315ed212ec0d7bbad57ef9d02d1b9b500432257a1d78248eef24605;
+scalar-only-shared-sort-build/manifest.json. Generated-code inspection and the
+focused Hard128 comparison are pending; it remains unapplied.
+
+## Selective loop-unroll plans captured
+
+Four untimed captures use the original-order ceccc2a1 binary on complete Llama
+and Qwen workloads, selecting only both Add/trips=4 orientations for live-MinCover.
+Independent audit accepts 15,600 full ordered entries and 468 target entries,
+all exact to prior GJ counts/flags/final sizes. Only the 116/118 selected entries
+change plans; every other plan stays identical. GJ's 23 stages become ten/nine
+native stages. The leading LoopStart cover probes MNum, LoopInput's two-column
+key, ICons, and LoopEnd's three-column key. This establishes the selected plan
+shape, not its runtime ordering or performance. Both target rules still produce
+zero matches. A five-pair selective timing comparison is being prepared.
+
+Artifacts: selected-unroll-plans/independent-plan-audit.json/.txt,
+comparison.json and compact-plans.txt; collect-selected-unroll-plans.py.
