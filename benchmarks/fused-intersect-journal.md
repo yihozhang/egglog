@@ -692,3 +692,77 @@ three unique-y cases. Equal fanout 8 instead loses 67-69% query time, fanout
 64 loses 29-30%, and 1:100/fanout8/25%-overlap loses 59-60%, in every pair.
 The native strategies therefore do have clear local wins; relation-size
 imbalance alone does not distinguish them from the losing grouped joins.
+
+Two Hardboiled rejection rules receive exact-selector follow-up in
+`native-hard-selective`: seven timed repetitions plus one warmup, GJ and
+scheduling controls, and each target separately under PureSize/MinCover.
+All 96 runs preserve final sizes and every individual seminaive match entry
+(2,699 entries for Hard32, 2,693 for Hard128). Both targets emit zero matches.
+On Hard128, the convolution rule improves 7.779 -> 1.382/1.376 ms (about
+82%) in every pair; total query improves 2.44%/2.00%. On Hard32 the same
+rule regresses 2.278 -> 2.501/2.493 ms (9-10%) in every pair. The WMMA rule
+improves about 41%/63% on Hard32/128 but saves only 0.104/0.303 ms.
+
+`native-hard-wall-followup` uses original unchanged inputs, no report or
+extra printing, 15 timed rounds plus three warmups, and matched GJ controls.
+The exact convolution MinCover policy improves Hard128 wall 1.10% versus
+GJ and 1.19% versus scheduled GJ (14/15 pairs faster against the latter,
+both order groups improve). Hard32 costs 0.22% versus GJ and 0.46% versus
+scheduled GJ. Empty stdout hashes are only a success check here; correctness
+comes from the separate 96-report audit. Selected logical plans reveal one
+convolution cover-order difference: Hard128 puts outer Ramp->Load before
+the two Cast covers, while Hard32 does the reverse. Runtime DVO order was
+not logged, so this is a plausible explanation rather than a causal proof.
+
+The live-cover prototype passes all 167 core tests both with its global
+switch off and on, including the new differential key/existence tests at
+one and four workers. It is frozen separately and removed from main.
+`live-cover-root11-pilot` compares four scheduled treatments: GJ and native
+MinCover, each with live-cover selection off/on. Of 44 attempts, 32 complete
+and 12 time out. All completed final sizes agree; live-on/off native match
+vectors also agree exactly wherever both finish. No global native winner
+appears. One eggcc extraction rule gets substantially worse (54 -> 491 ms)
+with unchanged matches. The new selection does expose local Luminal wins
+that the earlier native timeouts hid.
+
+`live-cover-selective` isolates direct-exp-fusion and list-tail propagation
+on llama, qwen, and whisper: seven timed repetitions plus one warmup, six
+treatments, all with scheduling. All 144 reports match every seminaive entry
+and final table size. Direct-exp live MinCover improves its target by 73.5%
+on llama and 76.4% on qwen, reducing total query 2.06%/2.71%; every pair
+improves. Whisper instead takes 0.703 -> 25.471 ms on that same rule, raising
+whole-query time 7.68% and wall time 4.16% in every pair. Original MinCover
+is slower on all three; removing dead cover requirements causes the useful
+plan change only on the first two. List-tail original MinCover improves its
+target 14.7%/15.5%/4.9% respectively, but saves little and live-cover selection
+adds nothing. The direct-exp rule's shape alone is therefore insufficient
+for selection. Next compare its positive and negative cached plans and test
+refreshing only that rule as tables grow, including a GJ refresh control.
+
+The exact direct-exp plans expose a fixed probe-direction problem
+(`direct-exp-plans/plan-direction-analysis`). All live plans retain the same
+eight covers and eliminate the same three list witnesses. Llama/Qwen bind
+the operator's input list and probe the outer ICons output. Whisper instead
+scans the outer ICons to probe that operator input, and no other cached-live
+stage narrows this list cover. Dynamic stage ordering cannot reverse this
+edge. Removing the old INil/tail covers also removes Whisper's previous
+list-narrowing route. This is plan evidence; runtime scan counts were not
+measured.
+
+`direct-exp-refresh` recompiles only this exact rule before each ruleset
+invocation, preserving last_run_at and seminaive construction. It passes
+19 bridge tests; seven timed repetitions plus one warmup compare GJ and
+live MinCover, each cached/refreshed. All 96 reports preserve final sizes,
+individual match entries, and changed flags. Llama/Qwen target times get
+slightly worse (+1.94%/+1.14%). Whisper's target improves 25.429 -> 16.052 ms
+(-36.88%), query -2.50%, and process wall -1.66% against cached MinCover,
+with every pair improving. It still loses query 5.20% and wall 2.98% against
+refreshed GJ. Recompilation is outside core query/run timers but inside
+process wall; GJ controls do not isolate compilation overhead.
+
+Refreshed Whisper plans move dtype before ICons, enabling head-column
+refinement, but retain the bad ICons-to-operator direction. Current base
+statistics therefore help without fixing the strategy. No general refresh
+policy is retained. The next isolated experiment promotes an already
+refined cover when it can narrow the next otherwise unrefined cover,
+changing the static direction without adding indexes or runtime replanning.
