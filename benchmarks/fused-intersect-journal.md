@@ -3154,3 +3154,40 @@ unallocated in both calls. Thus choosing the other ready driver is unsupported
 for these cases: the archives show none. This is saved-data evidence, not an
 extra lookup added to the measured or activation binaries. No policy trial is
 started from aggregate readiness alone.
+
+## Singleton opportunity census: first pass and bounded Python recovery
+
+The unchanged census binary 9df75277 runs the default GJ program with only
+metadata observation enabled. Frozen collector manifest 27ca3498 pins 91 files,
+the current bench.py eleven inputs and their transitive includes, exact declared
+print trailers, and math's sole run11-to-run12 edit. Root and two independent
+reviews accept the collector and parser. All runs use no-decomp, one worker,
+CPU24 and a 32GiB address-space bound; diagnostic times are not performance data.
+
+Eleven first attempts pass full own ordered-count/changed/aggregate/updated/
+can-stop/final-size oracles, covering 34,998 report entries. Python reaches the
+30-second watchdog without a report: its preserved stderr contains 486,231,600
+bytes and 644,557 lines, including a truncated final line. This remains a failed
+attempt, with no correctness or timing conclusion. A separately frozen recovery
+runner bdcbe87d pins 157 files and retries only Python for 120 seconds with the
+same binary, flags and input. It writes raw output directly to disk and validates
+metadata line by line; eight valid/eight malformed synthetic cases and complete
+Hard32 parser-equivalence checks pass. The combined audit must recheck all twelve
+full report oracles and identify the eleven reused captures plus one retry.
+
+Partial accepted metadata reaches the intended local wins: Llama unroll-Add
+trips4 state0/state1 each have 58 complete singleton focuses, and Qwen each has
+59. All choose atom1 LoopStart with compile_rows1 and live columns [3,0,1,2,4,5].
+These are metadata opportunities, not aligned executor entries or proven nonempty
+roots. Whisper's corresponding candidate has compile_rows2 and no selected focus
+among 99 complete focuses per state. Math has zero selected focuses among 304
+complete observations. No beta/cublaslt description is selected in Llama, Qwen
+or Whisper. Python remains pending, so this is not yet a twelve-case acceptance.
+
+The next isolated prototype will compile one full-live-PK cover prefix with a GJ
+suffix alongside the normal program, then choose it only from fresh singleton
+table/header constituents before publishing an execution plan. A forced-GJ
+control will compile/register both programs to expose that overhead. No recursive
+stage conversion or executor dispatch change is planned. Separately, a five-panel
+native MinCover/PureSize screen is being prepared for the retained-root prefilter;
+its local PK gains alone do not establish gains under whole-native planning.
