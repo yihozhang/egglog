@@ -3551,3 +3551,67 @@ Artifacts: whisper-singleton-trace-build/{manifest.json,
 independent-build-audit.json,runtime-independent-build-audit.json};
 whisper-singleton-trace-diagnostics/{audit.json,independent-raw-audit.json,
 independent-stage-interpretation.json,independent-stage-interpretation.txt}.
+
+
+## Isolated maximum-input refinement: repairs Whisper, no broad net gain
+
+Patch ce9a9cb7 changes only the filtered-fused refinement score on the exact
+cached-singleton-v2 stack. It takes the maximum credit across the cover and all
+probes, leaving scalar/scan-only scores, logical-prefix seeding, cadence, index
+acquisition and plan generation unchanged. The earlier multi-flag REFINE_MAX
+experiment did not isolate this change. Two forced-mode ordering tests cover
+initial/recursive probe credit and scalar/scan-only invariance. Build manifest
+8d0783d5 passes 178 core tests in three configurations, 19 bridge tests and fmt.
+Actual Cargo binary 9a893bcc and exact source/index/status restoration are
+independently verified. No experimental source is retained in the worktree.
+
+Frozen timing plan 9aa30673 pins 241 files. Three same-binary treatments are GJ
+(singleton off, max off), unchanged singleton selection (max off), and singleton
+selection with max on. Root11 uses three timed repetitions and two warmups per
+mode, both relative execution orders, CPU24/j1/no-decomp. All 165 reports and
+1,051,770 ordered entries pass independent full own-mode and cross-mode result
+checks; every paired statistic is reproduced. No cases or samples are excluded.
+Prior reports are correctness references only. Report wall includes trailers
+and serialization. Three pairs are a screen, not broad confirmation.
+
+| Case | Max/singleton query | Max/GJ query | Max/GJ report wall |
+| --- | ---: | ---: | ---: |
+| hardboiled_conv1d_32 | -0.041% | +0.008% | +0.163% |
+| hardboiled_conv1d_128 | +0.845% | +1.644% | +1.292% |
+| luminal-llama | +3.865% | +0.175% | +0.398% |
+| python_array_optimize | -0.283% | +0.814% | -0.190% |
+| cykjson | -0.693% | -0.050% | -0.626% |
+| eggcc-extraction | +0.483% | +1.873% | +0.857% |
+| llama | -0.060% | -1.446% | +1.579% |
+| paged_llama | +0.216% | -0.357% | +0.506% |
+| qwen | +0.408% | -1.134% | +1.224% |
+| qwen3_moe | -0.301% | -1.334% | +1.427% |
+| whisper | -13.543% | -0.492% | -0.250% |
+
+Whisper max/singleton improves query 13.543% and wall 8.232%, all three pairs
+in both orders. The targeted state1 rule falls from 51.804436ms to 0.915228ms
+(-98.233%), recovering the traversal regression. It remains slower than GJ's
+0.781033ms by 0.134195ms; state0 retains its 0.553660ms saving versus GJ.
+The two-state total improves 20.689% versus GJ. This supports the lost-probe-
+credit diagnosis without claiming that every downstream cost is measured.
+
+Luminal loses its earlier singleton gain: max/singleton query +3.865%, with
+row rms norm contributing +0.2521ms (+12.66%, all three pairs). Llama and Qwen
+keep net query gains and substantial local Add4 gains, but their wall means
+regress. Hard128 and eggcc max/GJ query and wall lose in all three pairs. The
+sum of case means remains worse than GJ: query +0.397%, wall +0.430%. Relative
+to the rejected singleton policy it improves query 4.168% and wall 1.185%,
+largely by removing the known Whisper regression. The combined policy is not
+promoted or sent to external81. No math repeat follows this rejected broad
+screen: the earlier census found no singleton choices in math12.
+
+A separate bounded scope test will disable singleton selection and compare
+max off/on in five established native panels: Hard32 PureSize, Llama PureSize
+and live-MinCover, eggcc PureSize and live-MinCover. This asks whether the same
+ordering correction helps existing filtered programs without dual-plan overhead.
+It uses exact own native oracles; no native/GJ equality or cross-binary timing
+claim is assumed. This is not a production promotion or another threshold sweep.
+
+Artifacts: fused-refinement-max-build/{manifest.json,independent-build-audit.json};
+fused-refinement-max-performance/{audit-root11.json,independent-root11-raw-audit.json,
+independent-target-interpretation.json,independent-target-interpretation.txt}.
