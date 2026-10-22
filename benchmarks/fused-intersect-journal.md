@@ -2510,3 +2510,48 @@ contributors. No production patch is retained.
 Artifacts: one-live-cover-timing/independent-timing-audit.json/.txt,
 local-gain-fractions.json, journal-ready-independent.txt and all raw runs;
 one-live-cover-timing-prepared/manifest.json.
+
+## Exact-root readiness confirmed for late Ramp covers
+
+The readiness diagnostic passes 174 core tests in each of three configurations
+(off, traced GJ, traced PK-v2), formatting, and exact worktree/index/status
+restoration. Its six untimed captures pass independent auditing of all 16,494
+ordered entries and 628 selected entries, complete own-mode counts/flags/sizes,
+trace identities, summary accounting and provenance. Hard32/128 also match GJ
+cross-mode; resize retains the previously known cross-strategy count differences
+with equal final sizes. No diagnostic elapsed time is used as performance data.
+
+The exact current cover has no published child index in any of 360 sampled
+filtered-stage visits. Raw-root reuse is nevertheless available. For physical
+Bop column 2, the raw root is ready in 64/118 Hard32, 64/118 Hard128 and 84/124
+resize calls; current table catalogs are ready in 24, 22 and 12 calls respectively.
+No catalog is observed stale. Missing continuation positions and unsupported
+sources remain distinct from unpublished child slots.
+
+Late Ramp/Ramp entries, ordinal 1, each contain two cover calls:
+
+| Case / iteration | Cover row counts | Right scalar key count | Exact raw root | Table catalog |
+| --- | --- | --- | --- | --- |
+| Hard32 / 61 | 545, 50 | 7 | ready | requires initialization/refresh |
+| Hard32 / 69 | 549, 50 | 2 | ready | requires initialization/refresh |
+| Hard128 / 61 | 1409, 62 | 19 | unallocated | ready/current |
+| Hard128 / 69 | 1413, 62 | 2 | ready | requires initialization/refresh |
+| resize / 68 | 2369, 33 | 1 | ready | requires initialization/refresh |
+| resize / 71 | 2375, 33 | 6 | ready | requires initialization/refresh |
+
+All five raw-ready entries use shared packed current covers with unpublished
+child families; Hard128/61 has a catalog leaf without a continuation position.
+Thus the old current-prefix index absence does not rule out reusing an existing
+root index and intersecting its key groups with the residual cover. Readiness
+alone does not establish selectivity or a net speedup. A bounded key-group and
+membership diagnostic is warranted next, without index construction or a new
+execution policy. A generic implementation would also need access to the initial
+root after ordinary bindings have been refined; the diagnostic's named-rule Arc
+retention is not itself a production design.
+
+Binary: egglog-cover-readiness,
+SHA 67b6ec5c6cc557039ea558451c1ba3898660f62f1c6cf1202d714d76624ce1dc.
+Runner manifest SHA e4b9e2fa7f66fdffe8b41cddba07bb18042a412af40a06a3d6d641b29bfa7331.
+Artifacts: cover-readiness-build/manifest.json; cover-readiness-diagnostics/
+{audit.json,independent-final-audit.json} and six raw captures. No production
+source change is retained.
