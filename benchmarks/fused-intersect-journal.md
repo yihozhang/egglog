@@ -1451,3 +1451,45 @@ primary key is fixed. This is a structural bound, not runtime telemetry.
 Gemma/Whisper runtime census has zero 3+ factor calls; Hard128 has just 118
 calls and 2,268 rows (1.8% of emitted rows), with no isolated cost measurement.
 There is no measured material opportunity that justifies adding the path.
+
+
+## Shared catalog refresh does not explain the Ramp interaction
+
+The temporary `catalog-refresh-trace` patch records only existing
+get_or_update refresh closures, with per-rule count, physical stale-row range,
+and refresh duration grouped by table identity/name and ordered columns. It
+creates no extra index or lookup. Serial scopes save/restore nested state;
+printing follows the original query timer. Planning/header work outside the
+scope and packed residual builds are excluded; RHS helpers executed in the
+scope can contribute events. Closure counts include zero-row no-op refreshes.
+This diagnostic is not a performance treatment: event aggregation and timers
+add execution overhead even though output happens outside the query timer.
+
+The frozen build passes all 174 core tests both disabled and with trace plus
+triangle enabled, and formatting. Six GJ-wait/v1/v2 Hard32/128 runs preserve
+all 16,176 ordered entries, changed flags, updated/can_stop flags, and sizes.
+Independent audit aligns each of 61 nonempty reported iterations per run by
+exact description, ordinal, and elapsed ns; 17 empty iterations are separate.
+The 39/63 auxiliary one-shot invocations all have one entry and zero refreshes.
+Input/binary hashes and control environments match their manifests.
+
+Divisible-lanes and ramp-pair have zero shared-catalog refresh events in every
+control. Equal-lanes has exactly one Bop[0] operator-column refresh, scanning
+486/1,796 rows at the two sizes, unchanged across treatments. There are no
+Bop[1]/[2] catalog refreshes in any of the three Ramp rules. Whole reported
+workload counts/rows also match: 175/13,066 for Hard32 and 188/41,495 for
+Hard128. Thus shifted shared-catalog refresh does not explain the measured
+recurring divisible penalty. This does not establish a packed-index, row-order,
+or CPU-cache explanation; those remain unmeasured. Source is restored and the
+diagnostic is not promoted.
+
+A separate six-run exact-rule plan collector resolves the remaining small
+native list-tail win. Llama/Qwen/Whisper all use the same MinCover direction:
+scan contains(tail,item,return,timestamp), probe ICons.tail, then scan the
+ICons payload. GJ intersects distinct tail keys and has separate ICons.list
+and contains.item leaves. All 27,680 ordered entries and final sizes match;
+only the selected rule's logical plans differ, and historical GJ count vectors
+also match. This confirms avoiding the contains-side index while repeating
+ICons probes per contains row. It does not justify blanket admission: the
+archived Whisper second delta still loses 38.59 -> 62.36 us despite its
+aggregate target win. No absent-key cache or new selection rule is implemented.
