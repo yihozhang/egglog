@@ -3502,3 +3502,52 @@ does not search for a replacement cover. Dominant Hard128 Float and Python
 Program_function_two shapes have multiple shared variables, so this restriction
 does not obviously address those losses. No gate is implemented or promoted.
 Artifact: cached-singleton-performance/offline-shared-variable-gate.{json,txt}.
+
+
+## Whisper singleton physical trace: late filtering multiplies traversal
+
+The observational build adds only bounded counters to the exact singleton-v2
+stack. All 176 core tests pass in off, trace-control and trace-select, all 19
+bridge tests and formatting pass. Actual Cargo artifact 35482a0d is frozen;
+source, index and status restore exactly. Both independent build reviews pass.
+Frozen capture manifest a1b8943c pins 61 files. Two full-context, untimed captures
+pass independent raw auditing of all 12,080 ordered report entries, all reported
+plans, complete own/cross results and 396 exactly aligned target scopes. No
+counter shape is truncated. Each target has 14 roots; two entries per mode/state
+stop at an empty header. Diagnostic durations are not performance evidence.
+
+State1 CONTROL rejects all 1,274 visits to the LessThan/Op scalar join at physical
+position 11. SELECT rejects all 93,418 visits to the replacement filtered fused
+stage at position 13. Every selected probe sees the same-sized already-packed
+Op source: three rows and three keys. That stage performs zero central packed
+builds and zero catalog refresh callbacks. Before it, unchanged list stages now
+expand work: old9/new10 emits 201,188 frames, old8/new9 performs 201,188 payload
+scans, and old11/new12 executes 99,502 times. There are additional downstream
+builds, but repeated traversal already explains a concrete source of extra work;
+this is not evidence for expensive construction of the singleton probe index.
+
+State0 behaves differently: SELECT executes the fused check at physical position
+1 on 80 visits, returns singleton Op subsets 68 times and rejects 12 times. Its
+later joins then reject early. The actual repeated-atom relationships distinguish
+the two orientations, despite alpha-equivalent reported programs. In particular,
+the LoopStart-head join shares the initially constrained outer ICons atom only
+in state1. The initial SELECT ordering puts the fused stage last in both states;
+runtime sorting changes its eventual position. Per-stage histograms do not
+reconstruct every sort decision or establish a full causal timing decomposition.
+
+The source exposes a specific asymmetry: scalar Intersect uses the maximum
+refinement credit over all inputs, while FusedIntersect uses only its cover's
+credit. Thus the Op refinement that favors the original scalar check need not
+favor the replacement fused check. Logical-prefix credit accounting and modulo-
+three cadence also remain possible contributors. A narrow max-input-credit
+ablation will isolate this mechanism without changing either of those policies.
+This revives an old bundled idea, not a new one: EGGLOG_FUSED_REFINE_MAX appeared
+in math12-prune-screen together with six other runtime flags plus dead-column
+pruning and payload deferral; that result did not isolate its effect. The next
+experiment changes only filtered-fused priority on the exact singleton-v2 base.
+It does not yet promote the rejected singleton policy or claim a speedup.
+
+Artifacts: whisper-singleton-trace-build/{manifest.json,
+independent-build-audit.json,runtime-independent-build-audit.json};
+whisper-singleton-trace-diagnostics/{audit.json,independent-raw-audit.json,
+independent-stage-interpretation.json,independent-stage-interpretation.txt}.
