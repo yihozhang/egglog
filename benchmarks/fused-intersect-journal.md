@@ -2850,3 +2850,62 @@ Artifacts: native-lazy-probes-prepared/{run.py,audit.py,plan.json};
 native-lazy-probes/independent-native-audit.{json,txt}. Prepared plan SHA
 4775dcdbd959207176f97eed5458b46ae0e4f3384a93ca91def09b755bdad504.
 No source changes from the lazy or retained-root experiments are applied to main.
+
+
+## Native lazy acquisition confirmed; clean production trial is warranted
+
+The fresh five-pair confirmation accepts all 168 processes, 593,124 ordered
+entries and twelve panels, with zero exclusions. All 126 pins, transitive includes,
+full own-strategy and same-mode screen references, commands/flags and chronology
+pass. Same 5cce2eb3 binary, five timed pairs plus two warmups, CPU24/j1/no-decomp,
+both pair orders; prior runs are correctness references only.
+
+| Case / strategy | Query change | Wall change |
+| --- | --- | --- |
+| Llama PureSize | -10.525% | -7.472% |
+| Llama live-Min | -2.942% | -1.747% |
+| Qwen PureSize | -11.470% | -8.826% |
+| Qwen live-Min | -2.740% | -2.020% |
+| Hard32 PureSize | -7.422% | -5.891% |
+| eggcc PureSize | -3.119% | -1.819% |
+| eggcc live-Min | -.637% | -.948% |
+| CYK PureSize | +.322% | +.153% |
+| CYK live-Min | -.411% | -.406% |
+| Selected RMS PureSize | -1.799% | -.287% |
+| Selected Whisper beta PureSize | -1.452% | -.630% |
+| Selected Whisper beta live-Min | +.449% | +1.040% |
+
+Both models' Pure/live-Min query gains, Hard32 Pure and eggcc Pure improve all
+five pairs and both order groups. Eggcc live-Min query is mixed (3/5 faster, order
+groups disagree); CYK Pure is slightly slower in 4/5 query pairs. Whisper remains
+mixed in query time; its live-Min wall is slower in 4/5 pairs and both orders.
+RMS target improves 3.228%, Whisper targets 3.077%/4.177%, all five pairs each.
+No samples are dropped, and no claim of improvement across every workload is made.
+
+The screen's per-entry decomposition also limits the success-path inference.
+Model GEMM and eggcc helper gains include both positive- and zero-output entries;
+Hard32's largest gain is almost entirely zero-output entries. Successful outputs
+exercise completed prefixes but do not establish high per-cover survival rates.
+See native-lazy-probes/screen-interpretation.{txt,json} for that decomposition.
+
+A clean flag-free lazy acquisition draft is now justified for production testing,
+with no diagnostic planner stack or strategy changes. It preserves the reviewed
+prefix algorithm and adds an independent fixture with more than 256 successful
+cover frames after initial failures to force intermediate draining. It is not
+built or retained yet. The next builder will create a fresh control before applying
+it, then run core/bridge/format checks and restore source bytes. Default GJ root11,
+math iter12 and external ground-truth screens remain required before retention.
+The existing bff505 control has equivalent source (only journal commits since its
+build and identical saved user diff), but a fresh control gives stronger provenance.
+
+Local non-target interpretation is saved at lazy-fused-timing/journal-note.txt and
+non-target-interpretation.json. Repeatable losses in dtype_prop Add and later
+direct-sigmoid-fusion occur in different ruleset calls from expr unroll, so the
+run-scoped packed-trie cache does not explain them as a same-invocation transfer.
+Persistent catalog initialization/refresh or other preparation remains unproven.
+These later costs and the existing local shared-header provenance caveat remain
+part of the evidence; the frozen local bundle is unchanged.
+
+Confirmation artifacts: native-lazy-confirm-prepared/{run.py,audit.py,plan.json};
+native-lazy-confirm/independent-native-confirm-audit.{json,txt}. Prepared plan SHA
+abd533eda2aa2bf3ffb29ab7e52d916ebfaa0682c9628d9eaf610789807adeae.
