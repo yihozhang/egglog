@@ -110,3 +110,63 @@ Compare both fixed covers and smaller-side selection using refreshed subsets,
 across relation-size imbalance and join-key fanout. Ground-truth harness for
 all 81 luminal/eggcc/hardboiled programs is prepared, but no candidate has yet
 earned promotion to that confirmation stage.
+
+## Binary joins: direction, fanout, and live plan choice
+
+The requested `R(x,y) ⋈ S(y,z)` experiment uses immutable generated inputs,
+retains all three output columns, and checks exact output sizes and match
+counts. Across 31 cases it varies R:S from 1:100 to 100:1, join-key fanout
+1/8/64, overlap 25%/100%, and an execution where the smaller side changes.
+Repeated explicit runs use `--no-decomp --naive -j 1` to exercise the query
+without seminaive elimination. Generator and runner are in
+`/tmp/fused-lab/{generate_binary_inputs.py,binary_compare.py}`.
+
+An initial timing harness redirected output to files while using a subprocess
+timeout, causing polling-quantized wall times. Those pilot wall measurements
+are invalid; internal query timings were unaffected. The runner now captures
+output through pipes and writes artifacts after measuring. The confirmation
+below uses the corrected runner, three measured runs and one warmup, CPU 24.
+Raw artifacts: `/tmp/fused-lab/binary-confirm`.
+
+| Case | GJ query | Fused smaller cover | Fused larger cover |
+| --- | ---: | ---: | ---: |
+| Equal rows, fanout 1, full overlap | 57.0 ms | 35.8 ms | 35.9–36.2 ms |
+| Equal rows, fanout 8, full overlap | 17.1 ms | about 24.5 ms | about 24.5 ms |
+| Equal rows, fanout 64, full overlap | 22.9 ms | about 27.0 ms | about 27.0 ms |
+| R:S=100:1, fanout 1, full overlap | 16.6 ms | 12.9 ms | 110.8 ms |
+| R:S=100:1, fanout 1, 25% overlap | 9.1 ms | 8.1 ms | 106.4 ms |
+
+This confirms useful fusion for unique join keys (37% less query time in the
+balanced case), but rejects random direction as a robust policy. Fanout matters:
+GJ projects both payload groups once per y and factorizes their Cartesian
+product. Fused execution repeats the probed payload projection for each cover
+row, losing that sharing when several rows have the same y.
+
+A separate scheduling issue initially obscured the binary comparison. When a
+fixed fused cover is larger than the other side, DVO can select that side's
+private payload scan first and scan the entire cover once per payload row.
+The experimental `EGGLOG_FUSED_DEFER_PAYLOADS` policy delays unconstrained
+payload-only scans until incident fused filters finish. It preserves constrained
+scans, materialization barriers, and factorized leaf scans. Focused tests cover
+both initial stage orders. These measurements include this policy.
+
+`binary-small` now caches the two possible orientations and selects using exact
+current filtered subsets. There is no full replan on repeated orientation hits.
+It follows the changing smaller side in the swap fixture, but fanout-8 fusion
+still loses to GJ. This is a cost-model issue, not merely refresh frequency.
+Local 11-workload screening (three paired runs plus one warmup) is approximately
+neutral/slower: hardboiled_128 +1.2%, luminal +2.7%, whisper +1.2%; all other
+changes between -0.5% and +2.6%. Enabling deferred bindings, probe ordering,
+primary-key tuple lookup, tiny tuple residuals, and terminal factorization
+changes this little. Raw data: `binary-cache-local.json`, `binary-all-local.json`.
+No workload speedup has been established, so these prototypes are not promoted.
+
+Next gate: shared keys/constants must determine the smaller cover's row, either
+from its schema or an already-current cached scalar index proving uniqueness.
+Checking cached indexes never creates or refreshes them. The runtime cache must
+recheck this proof before reuse and avoid caching negative decisions so a later
+GJ-built index can enable fusion. Experimental fallback currently retains the
+original cached stages if uniqueness later disappears: semantically valid, but
+not a guaranteed performance fallback to GJ. A retained version needs an
+explicit unfused fallback. Also test borrowing an immediately consumed terminal
+leaf's rows, avoiding an Arc without changing action batching.
