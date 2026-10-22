@@ -2394,3 +2394,38 @@ selective planner work; neither native strategy is recommended wholesale.
 
 Evidence: pure-versus-gj-local-evidence/README.txt, analysis.json, rankings.txt
 and artifact-hashes.json under /tmp/fused-lab. No new engine runs.
+
+## One full-live cover plus GJ suffix ablation built
+
+The next temporary planner experiment isolates a single explicitly numbered
+cover in the selected Add/trips4 rules. It retains exactly shared/RHS cover
+variables, including the private RHS key initial, and proves every physical
+primary-key column is retained or explicitly constant. Missing/private-unused
+keys reject before state mutation. Ordinary stage construction assigns probes
+and constraints; the existing GJ suffix skips bound variables while retaining
+other RHS fanout and isolated-atom existence. There is no production table-name,
+rule-name, size-ratio or arity admission heuristic. Logical prefix placement
+does not imply that DVO executes it first.
+
+The existing independent relational oracle now includes this mode at one/four
+workers, covering private RHS keys, stale/slow rejection, repeated/constant
+keys, missing witnesses, unused/placeholder probe keys and a real T(x,u) RHS
+suffix with two-value fanout. Additional assertions check one binding per cover
+variable and constraint/existence assignment for every atom; a proof matrix
+checks repeated physical-key representatives and rejected missing keys.
+
+Independent source reviews pass. The frozen first-eight PK-v2 plus original
+eed762 probe-order switch plus one-cover patch pass all 175 core and 19 bridge
+tests and formatting. ORDER_PROBES=0 is used; the rejected standalone scalar
+sort is not a dependency. Source/index/status are restored exactly. The same
+compiled artifact will compare GJ, one-cover and selected live-MinCover.
+Before timing, six untimed model captures must confirm accepted LoopStart
+AtomId1, live columns0..5 without timestamp6, exactly one filtered fused cover
+for the ablation, no non-target plan changes, and complete count/size oracles.
+
+Patch: one-live-cover/one-live-cover.patch,
+SHA ef309dc1133cd84bd0a1ecfce5ee03632a01c3e7d057b1e9f3ae4f2d1e41d46b.
+Binary: egglog-one-live-cover,
+SHA 41823df2b8fb99911adf0d8d476566927c294e1759fdef34e2c10c4ad4bdd312.
+Artifacts: one-live-cover/{manifest.json,README.md,independent-review.txt};
+one-live-cover-build/manifest.json. No engine workload run yet for this artifact.
