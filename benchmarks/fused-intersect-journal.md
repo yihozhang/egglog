@@ -2660,3 +2660,70 @@ possible shifts in shared-index construction to later rules. A later production
 candidate would also need the default-GJ regression screen; earlier inactive
 sort-code regressions remain a warning against relying only on local gains.
 Evidence: unroll-one-cover-diagnostics/lazy-prober-feasibility.txt.
+
+
+## Published root groups sharply reduce late cover candidates
+
+The bounded group diagnostic is complete and independently accepted. Its patch
+3e2ea4b2500a189e49acaebe68c7d8af757f00c984fab9c63a13cf3e881d37f0 adds
+observations atop the exact readiness stack; binary egglog-cover-groups is
+f15853c48ead7c2be8b58aedead0da3b8596dbf75dfae3f6803eb09bafafa93f. All
+174 core tests pass in three configurations, formatting passes, and original
+source/index/status bytes are restored. All six captures match their own full
+report oracles: 16,494 ordered entries and 628 target scopes. Hard cross-mode
+fingerprints agree; resize retains its known 16 cross-GJ count differences and
+equal final sizes. These observations add no semantic-equivalence claim.
+
+Actual sorted scalar keys confirm the motivating late selectivity. Resize
+iteration 68 has one right-hand key and one physical exact-root candidate per
+call; iteration 71 has six keys and six candidates per call. Intersecting those
+groups with the current covers retains one and six physical candidates in total
+across original cover sizes 2,369+33 and 2,375+33. Hard32/128 iteration 69 each
+retain two candidates; Hard32 iteration 61 retains seven from eight raw rows
+selected by seven keys. Hard128 iteration 61 has 19 keys, beyond the diagnostic
+cap of eight, and is deliberately unobserved. Per-entry summaries aggregate two
+calls and do not associate each intersection count with a particular cover size.
+Candidate counts are not output counts: payload fanout can produce more matches.
+
+Of 720 probe observations, 600 expose supported sorted views: 550 exceed the cap
+and 50 qualify. Forty-four eligible exact roots are already published, six are
+unready. The 44 observations visit 166 keys, 268 raw physical rows and 121 current
+cover members across summed cover sizes 33,799. These totals repeat observations
+and sometimes count a cover under both probes; they are not a whole-query work
+estimate. The key cap does not bound row visits, and group reads can warm caches.
+No elapsed measurements from this instrumented binary are used.
+
+The unconstrained-root shortcut is unavailable: all 720 observations have a
+cache but no existing (table, HeaderConstraintId0) root. Inherited readiness
+metadata matches the predecessor exactly after excluding pointers and elapsed
+fields. Thus a reuse-only execution experiment needs a modest way to retain the
+eligible cover's original exact root. No prefilter policy is implemented yet;
+root-retention, group lookup, membership, sorted-union and partition costs still
+need a design review and timing. The observation cap is not a production gate.
+
+Artifacts under /tmp/fused-lab: cover-prefilter-groups/{manifest.json,
+runner-manifest.json,cover-groups.patch}; cover-group-diagnostics/{audit.json,
+independent-final-audit.json,independent-final-audit.txt,interpretation.txt,
+interpretation-data.json,independent-interpretation-crosscheck.json}. All 40
+provenance pins, 11 patches, group accounting and interpretation independently
+pass. No production code from this experiment is retained.
+
+## Lazy fused-prober prototype frozen for measurement
+
+The temporary lazy-prefix patch is frozen after three source/fixture reviews:
+/tmp/fused-lab/lazy-fused-probes/lazy-probes.patch SHA
+ aab8cef6a1ea0e63b7c2b272782528956f45bd60e6f611bd780cb43b7d6449e4.
+Its exact ten-base stack is first-eight PK-v2 plus original probe-order switch
+and one-live-cover, with no trace/readiness/rejected sort policy. LAZY_PROBES1
+starts with an empty probe prefix and acquires another descriptor only after a
+row passes every existing descriptor. Fully built rows retain the original
+probe loop. ORDER_PROBES1 falls back to eager acquisition and sorting.
+
+The independent scalar/tuple relational fixture now places failures before its
+first success; a fourth header-restricted empty-output rule leaves the prefix
+permanently incomplete. Other variants preserve slow/stale filtering, payload
+multiplicity, later success/draining and one/four-worker checks. Previously
+frozen fixtures remain untouched. No builds or measurements have run yet. A
+same-binary eager/lazy local comparison and broad high-survival checks will
+establish whether saved acquisition outweighs the added completion check and
+possible deferred shared-index initialization.
