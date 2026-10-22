@@ -3869,3 +3869,52 @@ binary comparison; toggling an inactive flag in one binary cannot establish it.
 Artifacts: catalog-cover-prefilter-build/independent-build-audit.json;
 catalog-cover-prefilter-performance/{audit.json,independent-raw-audit.json,
 independent-acceptance-note.txt}; catalog-native-base-assessment/assessment.txt.
+
+
+## Catalog-only live-Min transfer: model, grammar and selected arithmetic gains
+
+The unchanged 3c85af56 binary passes the broader five-panel screen. Frozen plan
+0b981247 pins 77 artifacts, with three paired timed repetitions and two warmups
+per panel, CPU24/j1/--no-decomp. All 50 reports / 181,250 ordered entries pass
+independent own-reference and off/on counts/changed/updated/can_stop/final-size
+checks, exact selector/input/command/build provenance, and every paired/per-rule
+statistic. No panel or sample is excluded.
+
+| Context using live-Min | Query change | Report-process wall change |
+| --- | ---: | ---: |
+| Full Qwen | -46.301% | -34.891% |
+| Full eggcc | -0.595% | -0.818% |
+| Full CYK | -25.698% | -20.658% |
+| Hard128, exact Ramp/Ramp rule only | -15.109% | -11.647% |
+| Whisper, two batched-beta rules only | -0.314% | +0.777% |
+
+Qwen, CYK and selected Hard128 win both metrics in every pair and both execution
+orders. Eggcc query wins two of three pairs, wall all three; its small result is
+not treated as a robust large gain. Whisper query has an order sign flip and wall
+loses in two pairs; whole-workload performance is mixed. These selected-rule
+contexts do not establish full-native Hard128 or Whisper behavior.
+
+CYK query falls 50.570 -> 37.575ms and wall 61.811 -> 49.042ms. Its two recursive
+production rules save 6.967ms and 6.024ms, each preserving 1,773 matches. Positive-
+output entries account for 12.067ms (92.9%) of the 12.995ms query saving.
+Hard128's selected Ramp rule falls 163.797 -> 87.744ms (-46.431%, all pairs), with
+6,504 unchanged matches. Positive entries save 66.054ms and zero-output entries
+9.999ms; iteration47 ordinals0/1/2 account for 82.1% of target savings. Other rules
+offset 5.352ms, leaving 70.701ms whole-query saving. The largest offset is mixed
+and concentrated in the first pair, not proof of a policy-induced unrelated
+regression. Qwen's sigmoid/expert rules explain 90.98% of its saving. The selected
+Whisper beta pair improves 11.81% in all pairs but saves just 0.0835ms total, too
+little to establish a whole-workload improvement.
+
+The original Pure query counterexample remains. No new threshold, driver search,
+planner policy or promotion is justified by these native comparisons alone.
+Current-catalog reuse also cannot repair archived missing accesses whose catalogs
+were uninitialized/stale; Hard128 iteration61 had the contrasting already-current
+catalog opportunity. Do not generalize that readiness to all lost operand joins.
+The next cheap discriminating comparison is same-binary GJ/native-off/native-on
+for CYK and exact Hard128 Ramp/Ramp. That can establish net and local comparisons
+with GJ; archived cross-binary timings are only a scale check, not fresh evidence.
+
+Artifacts: catalog-cover-prefilter-followup/{audit.json,independent-raw-audit.json,
+independent-acceptance-note.txt,runtime-policy-interpretation.json,
+runtime-policy-interpretation.txt}.
