@@ -1622,3 +1622,71 @@ shared source; >1-row behavior stays as-is. Preservation must exclude local
 Direct slots, whose family-insensitive cache could otherwise return a node for
 the skipped column. Shared table-family publication distinguishes successors.
 This is a planned diagnostic, not a retained production change.
+
+
+## Singleton-only packed bypass loses in every panel
+
+The temporary singleton patch passes formatting and all 177 core tests in five
+configurations: off, GJ/PK inline, and GJ/PK preserve. Its three focused tests
+cover scalar lookup, sorted intersection, full/ranged enumeration, stale rows,
+slow constraints, and downstream family independence. Preservation is limited
+to shared Dynamic family slots; local Direct sources fall back to inline rows.
+The frozen binary is a189249e83d06c16263cbfca169c4305617f61d22011b1aebf5ac13733ca6900.
+All temporary source is restored, including the original user patch.
+
+The screen uses separate matched GJ and PK-v1 panels on Hard32, Hard128, resize,
+and Whisper. Each panel compares off/inline/preserve in the same binary with
+three timed runs and one warmup, CPU24/j1/no-decomp. All 96 runs and 342,888
+ordered entries pass independent provenance, command, environment, raw match,
+changed-flag, aggregate, updated/can_stop, and stdout-size checks within each
+panel. The documented GJ/native resize count differences remain explicit;
+they are not attributed to the singleton experiment.
+
+Mean query changes versus off (inline / preserve):
+
+| Workload | GJ panel | PK-v1 panel |
+| --- | --- | --- |
+| Hard32 | +6.17% / +7.09% | +6.21% / +5.71% |
+| Hard128 | +11.72% / +11.75% | +10.29% / +9.77% |
+| resize | +2.55% / +2.37% | +2.82% / +2.94% |
+| Whisper | +27.06% / +26.93% | +25.74% / +24.74% |
+
+Both candidates lose all 48 paired query comparisons, in both execution-order
+groups. Hard128 wall losses are about 7-9%; Whisper about 13-15%. The three-Ramp
+total also gets worse in all panel/mode means. A small Hard128/v1 preserved
+divisible-lanes saving (24.7 microseconds, 1.08%, all three pairs) is overwhelmed
+by 31.05 ms of whole-query regression. In Whisper the FE/FE Mul and Add merge
+rules account for roughly 80 ms of the GJ query loss. Preserving a validated
+original source does not rescue bypassing reusable singleton nodes. Reject both
+modes without broader confirmation. The experimental hook also reaches ordinary
+scalar Intersect calls, so no unrelated probing change is promoted.
+
+Existing traces further weaken singleton construction as the explanation for
+resize's original PK regression. Seven Ramp/Ramp entries with exclusively
+singleton Ramp[2] builds contain 408 such builds but together improve by about
+98.7 microseconds under v2. Two late entries (iterations 68 and 71, ordinal 1)
+instead add 78.9/81.2 microseconds while building no new Ramp[2] nodes. This
+alignment uses existing untraced timings, not diagnostic-clock estimates. It
+points to other execution costs; it does not yet identify the expensive probe
+or scan. Artifacts: pk-singleton-panels/independent-singleton-audit.json/.txt,
+and packed-build-resize/singleton-repeat-attribution.json.
+
+## Why repeating the current PK planner is insufficient
+
+PK-domain eligibility, grouping, and its unary-domain anchor are structural;
+table size only chooses among eligible covers. Each measured Ramp rule has
+one eligible Bop cover, so refreshing statistics alone rebuilds the same shape.
+The current seminaive path refreshes headers while retaining cached stages.
+A useful GJ/PK runtime choice would need a measured admission policy and two
+prepared variants, including their shared access-family registration.
+
+Final Bop/Ramp row ratios are 0.896/0.903 for Hard32/128 and 0.834 for resize;
+AddOrSub has two rows everywhere. These endpoint statistics favor resize even
+more despite its regression, and cannot explain residual reuse. They are not
+per-entry source sizes. Do not fit an absolute-row threshold to these cases.
+The next bounded observation reuses the existing DVO trace design for the exact
+Ramp/Ramp rule: live subset sizes, source kinds, physical order, and logical vs
+physical refinement credits, with unchanged production cadence and no index
+lookup or warming. This can reveal whether a small seminaive input is already
+available before the fused cover scan. Source/archive assessment:
+pk-runtime-selection-assessment.txt. No new planner policy is retained.
