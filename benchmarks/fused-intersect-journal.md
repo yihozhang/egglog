@@ -1860,3 +1860,67 @@ pending that check. Confirmation artifacts: pk-probe-order-confirm/
 independent-probe-order-confirm-audit.json/.txt and
 hard128-unchanged-rule-attribution.json. The screen's directional attribution
 is in pk-probe-order-panels/runtime-entry-analysis.json/.txt.
+
+
+## Native validation exposes a mixed-probe ordering regression
+
+The bounded native check completes 190/190 engine runs: seven inputs, nineteen
+GJ/PureSize/live-MinCover panels, ordering off/on, three timed runs plus two
+warmups. A separate hardened audit verifies all 654,790 ordered entries,
+unique chronological coverage, commands/environments, CPU24/j1/no-decomp,
+nonempty raw stdout sizes, raw timing/row consistency, input suffixes, binary,
+patch stack, and harness provenance. All nineteen within-strategy panels are
+complete and exact. Hard32 and eggcc driver exit 2 comes solely from separate
+cross-strategy fingerprints; it is not an ordering-induced snapshot mismatch.
+
+Native ordering helps Llama/Qwen Pure query by 1.65%/1.32% and live MinCover
+by 2.30%/2.65%, every timed pair. Pure's two cublas column-major rules improve
+about 3-4%; live MinCover's pair-fuse lhs Mul/Add rules improve about 21% on
+both models. Exact RMS Pure target improves 15.69%, saving 0.887 ms. However,
+eggcc live MinCover query rises 3.945% and wall 3.124%, all three pairs and
+both order groups. Pure eggcc instead improves 2.871% query. General sorting
+is therefore not promoted. The exact Whisper beta family also has no local
+gain: Pure adds 7.8 microseconds and live MinCover 19.2 microseconds; the
+latter loses all three pairs despite a small whole-query control decrease.
+
+The recursive ExtractedVecOperandHelper rule explains 97.4% of eggcc live
+MinCover's query loss: 460.448 -> 484.518 ms (+24.070 ms, 5.227%), exact 537
+matches across 358 entries. Its 238 zero-output entries add 22.575 ms, or
+93.8% of the rule's penalty; the largest losses include iterations 95-101,
+ordinal 2. The same rule under Pure improves 51.146 -> 44.920 ms (12.173%),
+including 5.861 ms saved on zero-output entries. This is a plan-dependent
+cost difference, not the user's known nondeterministic eggcc snapshot issue.
+
+Two untimed full-native with-plan captures preserve each strategy's own
+counts, changed flags, aggregates, updated/can_stop and sizes. They retain
+the surrounding native workload rather than restricting the strategy to
+the target rule. Each strategy has one target logical plan across all 358
+entries. The important Min stage scans VecOperand-get(vec,index,operand,...)
+and originally probes ExtractedOperand[operand], then
+ExtractedVecOperandHelper[vec,index], then VO[vec]: widths [1,2,1]. Pure instead
+scans ExtractedVecOperandHelper and probes VecOperand-get[vec,index], then
+VO[vec]: widths [2,1], leaving operand extraction as later stages. Both share
+an initial VecOperandAndCost stage with two scalar probes.
+
+The length accessor used by the experiment is heterogeneous: catalog tuple
+indexes count full keys, packed tuples count only first-level keys, and
+SmallExact counts retained rows. Packed tuple probes may also lazily descend
+after a prefix hit. This could rank an expensive tuple probe before a cheaper
+rejecting scalar probe. Static widths establish that the suspect combination
+exists, but do not establish its actual runtime representation or prove the
+cause of the measured loss. Do not claim avoided probe counts from these plans.
+
+Next test one small alternative: stable scalar-first ordering, then existing
+key-count order within scalar and tuple groups. It preserves the successful
+all-scalar PK order exactly and requires no new statistics or cache lookups.
+Compare off/cardinality/scalar-first within each existing native strategy;
+no threshold sweep or production promotion is justified yet. The flag-free
+cardinality-sort artifact remains unapplied. A retained policy will also need
+a focused relational oracle for reordered probes with different projections
+and partial failures, which existing production tests do not force directly.
+
+Artifacts: native-probe-order-confirm/independent-hardened-audit.json/.txt,
+journal-ready-independent.txt, native-rule-interpretation.json/.txt,
+eggcc-helper-zero-entry-attribution.json; eggcc-probe-order-plans/manifest.json
+and probe-width-analysis.json/.txt. The unchanged production workspace still
+contains only the original user's source edits.
