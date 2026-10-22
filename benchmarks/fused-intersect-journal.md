@@ -877,3 +877,58 @@ merge/rebuild, and time outside the reported run all improve together in
 this unwarmed first case. Hard128 does expose two positive-output local
 gains (~26 -> 21 ms, 64 matches each), overshadowed by a different rule's
 103 ms regression. These need exact-rule isolation before conclusions.
+
+`elide-dead-cover` tests the narrower dead-stage idea. After native cover
+selection, it omits a probe-free stage only when an earlier retained stage
+has attached the atom's existence/slow constraints, every physical key
+column is already fixed by a bound variable or equality constant, and all
+new bindings are private, unused, non-key variables. Headers and atoms
+remain. Complete-key uniqueness preserves multiplicity; private key columns,
+placeholders, and isolated witnesses retain their stages. The combined
+follow-up binary passes 171 core tests with flags off/on, including actual
+elision, composite/repeated keys, stale rows, slow rejection, and one/four
+workers. Temporary changes are removed after freezing.
+
+`elide-dead-cover-results` compares GJ, PureSize, and live MinCover, each
+elision-off/on, five timed repetitions plus one warmup. All 252 engine runs
+succeed; every matched on/off final size and ordered individual match/changed
+entry agrees. The nine known native-vs-GJ eggcc entry differences are present
+with elision both off/on. PureSize's two beta rules improve together by
+18.79%/18.76%/18.60% on llama/qwen/whisper (all five pairs), saving
+0.154/0.155/0.239 ms. Whole-process time does not improve. Live MinCover
+already avoids these tails and gets essentially no additional benefit.
+Whisper direct-exp and CYK are neutral. Eggcc live-Min query improves 2.99%
+but remains about 4.44x GJ.
+
+A decisive negative appears in old Luminal: PureSize query rises
+42.032 -> 247.019 ms, wall 138.967 -> 345.500 ms, in every pair. The
+row-rms-norm rule accounts for 205.639 ms of the increase with identical
+65-match vectors. Retaining logical probe directions does not preserve
+physical scheduling: removing stages changes refinement priorities and
+runtime re-sort positions. This rules out globally enabling the elision
+without understanding that interaction. Matched plan and DVO diagnostics
+are the next step, rather than expanding timing of the failed policy.
+
+`anchored-isolated` independently selects each promising or negative hybrid
+rule: five timed repetitions plus one warmup, GJ and an unmatched-selector
+anchor-wait control, and waiting/non-waiting variants per target. All 240
+reports preserve final sizes and every individual match/changed entry.
+An independent plan audit covers 53,922 entries: only the 813 exact selected
+entries change their logical plan. Hard32's broad cold-pilot gains do not
+reproduce. Hard128's two positive-output convolution rules do: each drops
+about 27.0 -> 21.8 ms (19.4%), with 64 matches, query -0.97%/-1.18%, wall
+-1.11%/-1.37%, all five pairs. Disabling the anchor wait gives similar gains.
+The negative convolution rule rises 144.882 -> 253.380 ms (+74.9%), also
+with unchanged positive outputs. Both Hard sizes compile the good Tile
+covers at three estimated rows and the bad Float cover at six; a cutoff
+between these values would be fitted to these cases rather than explained.
+
+The sigmoid marker improves 30-42% on llama/qwen/qwen3_moe but regresses
+1.874 -> 6.761 ms (+261%) on whisper. The expert-index marker improves on
+all four: 50.7%/48.2%/64.0%/9.8%, with 1/1/5/2 matches. Absolute expert
+savings are only 0.253/0.243/0.802/0.068 ms, so process effects are small
+and mixed. All target signs repeat in every pair, and disabling the anchor
+wait gives similar results. The first three workloads choose an Op cover
+with constructor/list key variables; whisper chooses ICons and reverses
+the grouped edge. These are positive-output local wins and a useful
+candidate-direction experiment, but no general anchored selector is ready.
