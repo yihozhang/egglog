@@ -3445,13 +3445,39 @@ private RHS keys forward. It is not an implemented gate or a named-rule exclusio
 Artifacts: cached-singleton-whisper-plans/{audit.json,independent-raw-audit.json,
 independent-target-programs.txt}.
 
-The retained-cover source<=1 bypass separately freezes patch2727e2e3, manifest
+The retained-cover source<=1 bypass separately freezes patch 2727e2e3, manifest
 8ea45c64 and builder c55acb9f. It adds only an early optional decline before driver
 selection, preserving ordinary fused scanning/probing. The expanded existing
 fixture explicitly covers a ready empty scalar driver with a singleton cover:
 OFF can produce Some(empty), while ON falls back and still returns zero matches.
 Matched singleton, zero current, multi-row, stale/slow and partition cases remain.
-All four core configurations pass175 tests, bridge passes19 and fmt passes. Actual
-Cargo binary441330a0 is frozen, with full original source/index/status restored and
+All four core configurations pass 175 tests, bridge passes 19 and fmt passes. Actual
+Cargo binary 441330a0 is frozen, with full original source/index/status restored and
 independently accepted. Its 45-run three-mode timing screen is prepared separately
 from the rejected singleton-plan policy.
+
+## Prefilter singleton bypass: no convincing incremental gain
+
+Frozen timing plan aaeeb0cf pins 66 files and runs binary 441330a0 in three
+separate panels: Llama PureSize, Llama live-MinCover and Hard128 PKv2. Each has
+three timed repetitions plus two warmups of prefilter-disabled, original-prefilter
+and guarded-prefilter modes. All 45 reports and 155,205 ordered entries match
+full archived own-mode and current cross-mode oracles. Independent raw replay
+accepts every command, input/include, metric and paired/order statistic. No
+samples or cases are excluded; no cross-binary times are compared.
+
+| Panel | Guard/original query | Faster pairs | Guard/disabled query | Guard/disabled report wall |
+| --- | ---: | ---: | ---: | ---: |
+| Llama PureSize | +0.139% | 2/3 | +5.668% | +4.962% |
+| Llama live-MinCover | -0.457% | 2/3 | -18.204% | -12.199% |
+| Hard128 PKv2 | +0.280% | 1/3 | +0.004% | -0.138% |
+
+Pure's incremental result changes direction by execution order, and its guarded
+prefilter still loses to disabled in all three pairs. MinCover preserves its
+substantial original prefilter gain but offers no compelling incremental guard
+gain. The bypass therefore does not resolve the observed PureSize overhead and
+is not promoted. Its observed reduction in futile singleton attempts did not
+establish a useful net timing improvement. No further threshold or low-level
+variant sweep is warranted from this result. Keep the bounded Whisper physical
+trace as the next investigation. Artifacts: retained-cover-singleton-guard-timing/
+{audit-screen.json,independent-screen-raw-audit.json}.
