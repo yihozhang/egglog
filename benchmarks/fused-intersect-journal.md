@@ -3334,3 +3334,23 @@ prototype; only the documented final fixture case differs. The six with-plan
 Llama/Qwen captures (manifest 9ab56fa1, 58 pins) now pass their collector's 23,400
 full ordered-result checks; independent raw and plan interpretation follow before
 the root11 plus math12 three-mode timing screen.
+
+Independent six-plan replay accepts all 58 pins, all 23,400 ordered results and
+all 234 Add4 plan comparisons. OFF/CONTROL reported programs are equal throughout.
+SELECT changes 805 entries across 39 descriptions in Llama and 756 across 33 in
+Qwen. Every observed changed prefix is filtered FusedIntersect, with LoopStart
+accounting for 612 and 624 respectively. Add4 entries all return zero matches;
+other changed entries include nine positive Llama entries (70 matches) and seven
+positive Qwen entries (69 matches). These are logical plan observations, not
+physical execution counts. Saved interpretation and independent raw audit are in
+cached-singleton-cover-plans.
+
+The native activation summaries further bound applied singleton calls to exactly
+zero: every nonempty applied-cover size summary has minimum greater than one.
+Thus a source-size-at-most-one prefilter bypass would skip 242,237 observed Pure
+calls (41.35%) and 83,107 live-Min calls (59.23%) without losing any recorded
+application. It would still incur root retention/setup and leave many other
+fallbacks unchanged. Pure's leading decline counts are 265,911 driver-not-smaller,
+261,103 unpublished and 55,067 no-scalar. This motivates one separate minimal
+bypass experiment; it does not establish a measured gain or justify a threshold
+sweep. The singleton alternate screen remains separate.
