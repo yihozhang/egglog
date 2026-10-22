@@ -3918,3 +3918,46 @@ with GJ; archived cross-binary timings are only a scale check, not fresh evidenc
 Artifacts: catalog-cover-prefilter-followup/{audit.json,independent-raw-audit.json,
 independent-acceptance-note.txt,runtime-policy-interpretation.json,
 runtime-policy-interpretation.txt}.
+
+
+## Catalog filtering still loses to GJ in direct native comparisons
+
+The direct comparison uses the unchanged 3c85af56 binary in GJ, native-Min OFF
+and native-Min catalog ON modes. Frozen V1 was never run: pre-launch review found
+that its inherited DEFER1 flag would traverse stages even in scalar GJ. Corrected
+V2 plan d4b807e2 sets GJ DEFER0/BRIDGE0/LIVE0/CATALOG0 and retains the previous
+native flags. All 109 pins, 30 reports and 42,915 ordered entries pass independent
+command/provenance, own-reference and cross-mode counts/flags/final-size checks.
+Both cases use three timed repetitions and two warmups, CPU24/j1/--no-decomp,
+5-second/32-GiB bounds, with both orders for each comparison. No samples excluded.
+
+| Context | GJ query | Native OFF query | Catalog ON query | ON/GJ query | ON/GJ wall |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Full CYK | 23.462ms | 48.505ms | 35.883ms | +52.938% | +36.594% |
+| Hard128, exact Ramp/Ramp native selection | 301.076ms | 457.946ms | 386.888ms | +28.502% | +20.863% |
+
+Catalog ON improves native OFF query by 26.023% and 15.517%, respectively, but
+both net GJ comparisons lose query and wall in every pair and both orders.
+CYK's two recursive rules remain 46.391% and 61.428% slower than GJ, preserving
+1,773 matches each. Positive-output entries account for 97.05% of CYK's residual
+query loss. Its 14 consistently faster individual recursive entries save only
+7.761 microseconds in total; just one has positive output (two matches, saving
+0.170 microseconds). There is no material local recursive-rule win to select.
+
+Hard128 Ramp/Ramp alone takes 2.371ms under GJ versus 86.781ms under catalog-Min,
+36.60 times slower with 6,504 unchanged matches. Its 84.409ms increase accounts
+for 98.37% of the whole-query loss. Every one of its 23 positive-output entries
+loses in all three pairs, as do ten of eleven zero-output entries. The sole
+consistent winner is zero-output and saves 0.020 microseconds. These are losses
+in the selected native target itself, not an unrelated-rule offset.
+
+Source establishes that catalog filtering follows all original prober
+acquisition and leaves native stages and their subsequent scan/probe/drain work
+intact. Timings alone do not distinguish index acquisition, repeated scans,
+factorization or later reuse as the remaining cause. The native runtime gain is
+real, but no native strategy switch, new threshold or promotion is supported.
+This same-binary experiment does not measure codegen overhead against clean GJ.
+
+Artifacts: catalog-cover-prefilter-direct-v2/{independent-screen-raw-audit.json,
+independent-acceptance-note.txt,runtime-local-interpretation.json,
+runtime-local-interpretation.txt}; runtime-interpret-catalog-direct-v2.py.
