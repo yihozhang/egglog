@@ -2530,7 +2530,7 @@ sources remain distinct from unpublished child slots.
 
 Late Ramp/Ramp entries, ordinal 1, each contain two cover calls:
 
-| Case / iteration | Cover row counts | Right scalar key count | Exact raw root | Table catalog |
+| Case / iteration | Cover row counts | Right probe len() | Exact raw root | Table catalog |
 | --- | --- | --- | --- | --- |
 | Hard32 / 61 | 545, 50 | 7 | ready | requires initialization/refresh |
 | Hard32 / 69 | 549, 50 | 2 | ready | requires initialization/refresh |
@@ -2539,6 +2539,8 @@ Late Ramp/Ramp entries, ordinal 1, each contain two cover calls:
 | resize / 68 | 2369, 33 | 1 | ready | requires initialization/refresh |
 | resize / 71 | 2375, 33 | 6 | ready | requires initialization/refresh |
 
+The reported probe length is metadata, not yet a measurement of distinct keys
+after every residual filter; cached index lengths can describe a wider source.
 All five raw-ready entries use shared packed current covers with unpublished
 child families; Hard128/61 has a catalog leaf without a continuation position.
 Thus the old current-prefix index absence does not rule out reusing an existing
