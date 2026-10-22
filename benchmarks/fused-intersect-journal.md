@@ -2429,3 +2429,53 @@ Binary: egglog-one-live-cover,
 SHA 41823df2b8fb99911adf0d8d476566927c294e1759fdef34e2c10c4ad4bdd312.
 Artifacts: one-live-cover/{manifest.json,README.md,independent-review.txt};
 one-live-cover-build/manifest.json. No engine workload run yet for this artifact.
+
+## One-cover plan captures accepted; timing isolated next
+
+All six untimed captures (Llama/Qwen, GJ/one-cover/live-MinCover) now pass.
+The first collector stopped after two successful Llama engines because its
+trace parser expected one fewer Some wrapper around the table name. The raw
+runs and failed manifest were preserved. A separate hash-pinned resume script
+reaudited those two runs and collected only the remaining four; no engine or
+count failure occurred, and the shape check was not relaxed.
+
+Independent shape analysis confirms 3,827 Llama and 3,973 Qwen ordered entries,
+with all counts and changed flags exact. The 3,711/3,855 non-target plans are
+unchanged. Each of the two selected rules has 58/59 entries and zero matches.
+One-cover replaces five scalar stages and one pure scan with one filtered
+LoopStart cover: 23 stages become 18, all 26 live variables bind once, and the
+17 remaining stage descriptions equal the original GJ suffix exactly. Native
+live-MinCover uses the same first-cover filters but additionally binds timestamp
+column 6 and changes the suffix, yielding nine/ten total stages. Thus the next
+same-binary timing comparison can distinguish one-cover behavior from the
+whole native plan. Physical DVO order remains unobserved.
+
+Artifacts: one-live-cover-plans-resumed/{manifest.json,audit.json,
+independent-shape-audit.json}; original captures and failure are retained under
+one-live-cover-plans. No performance claim is made from these traced runs.
+
+## Ready cover-index prefilter: metadata diagnostic prepared
+
+A separate runtime lead asks whether the expensive late Ramp fused scans could
+reuse an already-published Bop column index to restrict their cover with a tiny
+scalar probe. Saved traces show prior same-invocation raw Bop[2] indexing near
+the late resize/Hard entries, but equal row counts do not establish root identity
+or publication readiness. The exact current prefix may also lack the index.
+This is not the earlier full-primary-key reverse lookup or singleton bypass.
+
+A frozen diagnostic retains each actual initial Bop root Arc and observes only
+existing current-prefix, exact-root and whole-table catalog slots after normal
+probe construction. It performs no key lookup, enumeration, slot allocation,
+family registration, index construction or refresh. Unsupported sources and
+catalog leaves without a continuation are distinguished from empty slots.
+Its fixed summaries join readiness with driver lengths and cover sizes. The
+root and independent reviewer have inspected its identity, scope and cache
+access logic; build and workload validation are still pending. All traced
+elapsed times will be discarded as performance evidence. If neither exact-root
+nor catalog indexes are ready, this reuse-only path should be abandoned rather
+than paying to build an index.
+
+Artifact: cover-prefilter-readiness/cover-readiness.patch,
+SHA d24c8642fe764e9e93bcfe345de2c8c8463d6b9368122c70650af5de68b1150c;
+README.txt specifies the schema. Base is first-eight PK-v2 plus original probe
+ordering switch with ORDER=0. No production source change is retained.
