@@ -2479,3 +2479,34 @@ Artifact: cover-prefilter-readiness/cover-readiness.patch,
 SHA d24c8642fe764e9e93bcfe345de2c8c8463d6b9368122c70650af5de68b1150c;
 README.txt specifies the schema. Base is first-eight PK-v2 plus original probe
 ordering switch with ORDER=0. No production source change is retained.
+
+## One-cover timing: a minority of the native MinCover gain
+
+The same-binary comparison completes all 42 processes (30 timed, 12 warm).
+Independent auditing accepts 163,800 full ordered entries and 4,914 selected
+entries against both their own capture and GJ, including changed/updated/can_stop,
+aggregate counts and final sizes. All hashes, controls and process chronology
+pass. CPU24, j1, --no-decomp, ORDER0 and TRACE0 are fixed; a rotating three-label
+schedule gives each label every position and both orders for every pair. No
+samples are dropped.
+
+Llama target sum is GJ 0.602888 ms, one-cover 0.543176 ms (-9.904%), live-Min
+0.408420 ms (-32.256%). Qwen is 0.605165, 0.564576 (-6.707%), and 0.380265 ms
+(-37.164%). Both candidate sums improve in all five pairs and both orders.
+The isolated first cover captures only 30.71%/18.05% of full native savings.
+Its benefit is concentrated in state1 (-21.19%/-17.77%, all five); state0 instead
+loses 0.56%/3.47%, four of five pairs slower. Full live-Min improves both
+orientations in every pair. All selected match counts are still zero.
+
+Whole-query effects do not establish a general win: one-cover is +0.071%/-0.313%
+and wall -0.148%/+0.757%; query order groups are mixed. Full live-Min query is
++0.431%/-0.726% and wall +0.703%/-0.267%. Qwen one-cover's outsized 277.994 ms
+wall sample remains included. This is a useful plan-level ablation, not evidence
+for a particular rejection mechanism or a production admission rule. The next
+diagnostic should observe actual DVO stage visits and rejected probes in both
+orientations; first-cover timestamp and native suffix differences remain possible
+contributors. No production patch is retained.
+
+Artifacts: one-live-cover-timing/independent-timing-audit.json/.txt,
+local-gain-fractions.json, journal-ready-independent.txt and all raw runs;
+one-live-cover-timing-prepared/manifest.json.
