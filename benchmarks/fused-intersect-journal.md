@@ -382,3 +382,74 @@ grouped Cartesian product at the same 128-row batch boundaries, and cache
 terminal payload projection by scalar key within a filtered binary fused
 invocation. The latter keeps cover-row order and bounds retained storage to
 4096 keys / 262144 logical cells, bypassing new cache entries beyond the cap.
+
+User clarification: eggcc snapshot differences confined to `smaller` and its
+related tables are known nondeterminism and are not a blocker for performance
+experiments. Record those differences separately from unexpected changes.
+
+The six-treatment cache/batch screen (`math12-cache-batch-screen`, two timed
+runs plus warmup) passes exact counts within its two established ordering
+families. Query / wall means: original baseline 2.03493 / 9.28876 s; grouped
+1.99188 / 9.22916 s; grouped+batch 1.94474 / 9.24765 s; pruned binary fused
+2.17314 / 9.61338 s; fused+cache 2.07964 / 9.63368 s; fused+cache+batch
+2.14554 / 9.64121 s. Batch improves query time over grouped by 2.10% and
+2.63%, with inconclusive wall changes. Cache improves query time over fused
+by 4.78% and 3.82%, but still trails GJ. No promotion.
+
+Small-cache tracing sees 359,383 hits and 744,977 projections; it avoids
+39.28% of payload-row projection work, but 639,027 projections bypass full
+budgets. A larger diagnostic (65536 keys / 4194304 cells) eliminates every
+bypass: 856,804 hits, 247,556 projections, 1,717,557 projected rows, or
+87.66% of projection work avoided. Peak retention is 31862 keys / 1065780
+cells. All invocation/report counts and final sizes agree. However, 133 of
+184 invocations have no cache hits, so caching has a real cold-key cost.
+These diagnostic runs do not establish a speedup.
+
+Binary inspection identifies another cost of grouped execution: the 12
+run_plan specializations grow 17.2% in text size and common stack frames
+grow 576–608 bytes. This is a plausible contributor to the broad regressions,
+not proof of causation. An optional helper extraction is saved outside the
+working tree. A smaller alternative batches the existing FusedIntersect /
+FusedIntersectMat BindingSet directly in the serial action buffer, leaving
+run_plan and the planner unchanged. It replaces the larger pending prototypes
+in the working tree and passes all 166 core tests; measurements are next.
+
+The isolated batching screen (`math12-minimal-batch-cache-limits`, two timed
+runs plus warmup) gives original / same-binary disabled / enabled query means
+2.02778 / 2.03092 / 1.97635 s, and wall means 9.20968 / 9.27883 / 9.20095 s.
+Enabled versus disabled improves query time 2.69% (paired 2.44% / 2.93%);
+wall versus original is neutral (-0.10%). Every final size, per-rule and
+per-iteration count, and all 352 seminaive report-entry counts agree exactly.
+Add associativity and distribution account for 85% of the query gain.
+Larger fused payload caching still does not beat original GJ overall: query
+1.99627 s (-1.55%) but wall about 9.407 s (+2.14%). Cache variants remain
+within the previously documented order-sensitive free-join count family.
+
+The isolated batching root-11 confirmation (`root11-minimal-batch-confirm`,
+five timed runs plus warmup) has -1.36% geomean but +0.12% summed mean time.
+Cykjson improves 13.66%, with all five pairs between 13.05% and 14.21% faster.
+Whisper regresses 1.38%, with all five pairs 0.71%–2.12% slower. Most other
+cases are within 0.7%; Hardboiled-32's apparent 2.07% mean gain is driven by
+a baseline outlier (paired median only -0.18%). All 110 timed runs succeed
+and every per-workload stdout hash agrees. Next screen: a minimum product
+size of 0/8/32/128 for batching, to avoid tiny-factor overhead. Also running
+a first external 81-workload screen; one repetition is only diagnostic.
+
+The factoring residual trace (`math12-grouped-residual-trace`) identifies a
+more selective runtime opportunity. Of 359323 factoring-tail invocations,
+226588 (63.06%) have a singleton source on at least one side. Reduced Add
+has median one row versus 417 rows for reduced Mul. Most sources and probers
+already use packed caching, so avoiding index construction alone is unlikely
+to explain a large gain. A small terminal singleton fusion prototype will
+project the singleton once, probe only the other side, and retain existing
+factors and persistent dynamic tail ordering.
+
+The first external ground-truth screen (`external-minimal-batch-screen`,
+81 cases: Luminal 7 / eggcc 32 / Hardboiled 42; one timed pair, no warmup,
+CPU24, one thread, --no-decomp) completes all 162 runs with no final-size
+warnings. Geometric-mean candidate time regresses about 0.39%; mean of
+per-case percentage changes is +0.390%. Most differences are small; there
+is no broad improvement. This screen is baseline-first for every case and
+only one repetition, so it is diagnostic rather than a significance claim.
+Full commands, binary hashes, raw outputs, and explicit inherited fused
+environment are retained with the results under /tmp/fused-lab.
