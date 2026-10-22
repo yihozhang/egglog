@@ -2805,3 +2805,48 @@ restoration evidence still pass; they are not a substitute for a historical
 include hash. Frozen inputs are preserved rather than amended retrospectively.
 The next native bundle explicitly pins the shared include and checks the chosen
 inputs' include closure before execution.
+
+
+## Native lazy-acquisition screen: broad within-strategy gains, confirmation next
+
+The seven-case/twelve-panel same-binary screen completes all 120 runs. The frozen
+saved-data audit accepts all 423,660 ordered entries, every own-strategy reference
+and eager/lazy count/changed/aggregate/updated/can_stop/final-size comparison.
+No panels or samples are excluded. All 74 pins include the chosen transitive
+header input; no trace, one-cover selection or probe sorting is enabled.
+CPU24, j1, --no-decomp, three timed pairs plus two warmups, both execution orders.
+The binary remains 5cce2eb3. Historical native reports serve only as correctness
+references; all timing comparisons use the same new binary.
+
+| Case / strategy | Query change | Wall change |
+| --- | --- | --- |
+| Llama PureSize | -9.510% | -6.731% |
+| Llama live-Min | -1.727% | -.671% |
+| Qwen PureSize | -11.960% | -9.308% |
+| Qwen live-Min | -2.084% | -2.005% |
+| Hard32 PureSize | -6.894% | -6.254% |
+| eggcc PureSize | -3.187% | -1.694% |
+| eggcc live-Min | -1.767% | -1.748% |
+| CYK PureSize | +2.009% | +1.710% |
+| CYK live-Min | -.249% | +.032% |
+| Selected RMS PureSize | -1.699% | -1.077% |
+| Selected Whisper beta PureSize | +.951% | +.871% |
+| Selected Whisper beta live-Min | +.914% | +.745% |
+
+The first seven panels improve query and wall in all three pairs and both order
+groups. Positive-output rules contribute: the two model matmul rules have 13
+matches each and improve 13-17% under PureSize; eggcc's 537-match extracted-vector
+helper improves 13.21% under PureSize and 1.61% under live-Min. Match counts show
+successful paths execute, but do not establish per-cover survival rates.
+RMS target improves 3.369% and the two selected Whisper targets improve 2.788%/
+2.533%, each in all three pairs. CYK Pure's positive mean is concentrated in one
+52.922-ms lazy sample versus 50.081-ms eager; Whisper whole-query means likewise
+include slower isolated samples. Those samples remain in all aggregates. A fresh
+five-pair confirmation across the same twelve panels is being prepared, including
+these mixed cases. No broad speedup relative to default GJ is claimed: native
+PureSize/MinCover remain separate strategies, often much slower overall.
+
+Artifacts: native-lazy-probes-prepared/{run.py,audit.py,plan.json};
+native-lazy-probes/independent-native-audit.{json,txt}. Prepared plan SHA
+4775dcdbd959207176f97eed5458b46ae0e4f3384a93ca91def09b755bdad504.
+No source changes from the lazy or retained-root experiments are applied to main.
