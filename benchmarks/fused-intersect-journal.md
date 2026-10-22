@@ -4277,3 +4277,70 @@ constant-key-cover-performance-pilot/{audit-screen.json,audit-screen.txt,
 independent-raw-audit.json,independent-rule-interpretation.json,
 independent-rule-interpretation.txt}; interpret-constant-key-cover-pilot.py;
 runtime-constant-key-activation-observability.txt (design only).
+
+
+## Constant-key activation removes scans, but repeated fused-stage work remains
+
+Additive observer patch fe2b6ac0 (manifest af88a4be) was built over the exact
+FIRST3+constant-key V2 stack. All 172 core tests pass in three observer/helper
+configurations; 19 bridge tests and formatting pass. The actual Cargo artifact
+is frozen as egglog-constant-key-activation, SHA fa7e5336. Full worktree/index/
+status restoration and original user changes match exactly, independently
+checked. An initial builder-preparation schema error treated rule-file records
+as strings; both attempts failed before any preparation/build/source mutation.
+The corrected builder verifies each record and its pinned file before applying.
+
+The frozen four-capture runner 5e8bf075 pins 119 artifacts. Full legacy Llama
+contexts cross helper OFF/ON with observer OFF/ON; planner scope is unchanged,
+DEFER1/LIVE0/BRIDGE0 throughout, CPU24/j1/--no-decomp. Only exact Mul/Sum rule
+descriptions select observation. Primary and independent raw audits accept all
+four reports / 4,620 ordered entries / 536 target entries / 268 ON scopes, exact
+own modern/fresh/pilot and cross outputs, and identical full plans. Each ON
+context has 25 empty-stage scopes. No overflow or identity conflict occurred.
+Existing elapsed values align scopes only; none are performance evidence.
+
+The helper applies in 18,308 of 18,398 filtered calls (99.51%). The remaining 90
+are supported drivers with k>=C; there are no unsupported-driver, partition or
+key-shape fallbacks. Both helper states execute the same 18,398 recorded calls
+and see 882,465 original cover rows. Selected/requested/projected rows fall to
+20,398 (97.69% fewer). Existing primary lookups make 18,701 attempts: 18,604 hit,
+15,709 lie inside the current cover, 2,895 lie outside, and 97 miss. Applications
+return empty 2,904 times and nonempty 15,404 times. All conservation identities
+pass. Initial prober acquisition happens before the helper and is not removed
+by this narrowing; its build cost is not measured here.
+
+| Target | Filtered calls | Applications | Scan rows OFF | Scan rows ON | PK attempts | Rows inside current |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Mul -> CubeMul | 11,441 | 11,389 | 488,808 | 13,099 | 11,702 | 11,225 |
+| Sum -> TileSum | 6,957 | 6,919 | 393,657 | 7,299 | 6,999 | 4,484 |
+
+The largest zero-output losses from the separate uninstrumented pilot still
+perform repeated successful singleton narrowing. Mul entry (49,3) has 484
+calls: one root k>=C and 483 applications across three stride stages, 161 each.
+Every one of those 483 primary lookups hits inside the cover; scan rows drop
+25,158->525. Mul (57,5)/(63,4) have the same singleton counts. Sum (49,5),
+(57,6), and (63,5) each have 451 calls: one root k>=C and 450 applications,
+225 in each stride stage. All 450 hit inside; the last entry scans 50,512->562.
+The four positive-output entries also narrow successfully. Thus lack of helper
+activation does not explain the remaining net GJ loss. These aggregates do not
+locate suffix rejection, count normal fused probes, or assign time to stages.
+Separate k/C summaries do not establish joint per-call ratios.
+
+A read-only comparison finds a distinct static-placement ablation. Both the
+old private-unique/key-pair planners and the current constant-key extraction
+prefix all accepted groups before the GJ loop. In the exact legacy programs,
+Mul's original logical1 dtype-bearing ?a intersection moves behind all three
+stride groups; Sum's original logical2 ?a intersection moves behind both stride
+groups. No original-key-position trial was found. The next small experiment
+preselects exactly the same covers, then emits each group at its original GJ
+varying-key position and removes its consumed private payload leaves. All
+other stage order, helper behavior and DEFER1 stay fixed. DVO may still reorder
+these programs; logical placement alone is not an execution prerequisite or
+proof of fewer calls. No promotion follows from this diagnostic.
+
+Artifacts: constant-key-activation/{activation.patch,manifest.json};
+constant-key-activation-build/{manifest.json,independent-build-audit.json};
+constant-key-activation-prepared/runner-manifest.json;
+constant-key-activation-diagnostics/{audit.json,independent-raw-audit.json,
+independent-acceptance-note.txt,runtime-counter-interpretation.json,
+runtime-counter-interpretation.txt}; native-win-followup-overlap-assessment.txt.
