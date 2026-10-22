@@ -932,3 +932,69 @@ wait gives similar results. The first three workloads choose an Op cover
 with constructor/list key variables; whisper chooses ICons and reverses
 the grouped edge. These are positive-output local wins and a useful
 candidate-direction experiment, but no general anchored selector is ready.
+
+`anchored-domain-rank` tests candidate direction using existing base/header
+sizes: for each grouped key variable, find the smallest other real atom,
+multiply its row-count bounds with saturation, and cap by the cover's own
+rows. This estimates a bound on feasible complete-key tuples at compilation,
+not scan cost or selectivity. It adds no indexes. All 171 core tests pass
+with flags off, ranking enabled, and combined diagnostics enabled. All
+16 plan diagnostics preserve 75,492 individual entries; only Whisper's
+36 sigmoid and 25 expert plans change. Both now choose Op, making each
+marker family's complete logical plan identical across the four models.
+Whisper sigmoid changes ICons784 -> Op1028 with key domains[8,1]; expert
+changes ICons844 -> Op1099 with domains[15,1]. Other model choices stay fixed.
+
+`anchored-domain-markers` measures only those changed choices, five timed
+repetitions plus one warmup. All 36 reports preserve every size/count entry.
+Sigmoid improves 6.745 -> 1.769 ms (-73.77%) against the original hybrid,
+and beats matched GJ's 1.838 ms by 3.70% in every pair. Its net GJ saving is
+only 68 microseconds: the positive seven-match entry saves 209 us while
+zero-match entries cost 141 us more. Most of the apparent whole-query
+2.14 ms reduction versus GJ is unrelated-rule variation, so do not attribute
+it to this choice. Expert is mixed/slightly worse than the original hybrid
+(0.6165 -> 0.6254 ms), while still 7.12% faster than GJ in every target pair.
+
+The four-case `anchored-domain-pilot` rejects ranking as a general fusion
+policy. All 12 reports preserve individual entries, but both good Hard128
+rules lose their gains (21.7 -> 28.3/28.8 ms), the bad Float rule remains
+about 253 ms, and Llama's bad beta rule improves 652 -> 6.32 ms but remains
+15.8x GJ. These are single diagnostic samples. The pilot's candidate traces
+explain a stale-statistics trap: Hard128 switches Tile3 -> Cast48 because
+one constraining relation has zero rows when first compiled; Llama similarly
+chooses an ECons whose producer is initially empty. These cached domains
+later grow. Next test treating zero domains as unknown and retaining GJ
+when no candidate has an informative reduction, without a fitted size cutoff.
+
+`elide-rms-isolation` confirms the earlier stage-removal regression belongs
+to row RMS itself: three timed repetitions plus one warmup, full-native and
+exact-rule-only controls. All 16 reports preserve 1,155 ordered entries and
+65 target matches. Exact-only Pure goes 7.557 -> 206.834 ms; full-native
+7.657 -> 206.256 ms. Changes to other rules are not required for the loss.
+
+Native DVO diagnostics separate executed-prefix refinement, stable logical
+ties, recursive sorting disabled, and sorting at every eligible position.
+These are heuristic ablations, not semantic fixes: repository history already
+contains physical-prefix changes and reversions, and current tests protect
+the logical baseline. Two new focused tests cover actual fused prefix
+selection and unchanged ordinary GJ behavior. A fixture initially tied an
+unrelated cover with the intended target; its size was corrected rather than
+weakening the assertion. All 173 core tests then pass with flags off,
+physical-prefix enabled, and all diagnostic policies enabled.
+
+The bounded RMS trace shows the first important recursive difference at
+position four with identical retained residuals. Elision changes logical
+prefix credits, promoting Cast before F32. A 65-row Sum scan consequently
+moves from position seven, where the original modulo-three policy re-sorts,
+to position six, where it scans before a useful filter. Stable tie-breaking
+alone does not repair it. Both skipping recursive sorting and using executed
+prefixes avoid the blowup but make the original unelided plan slower.
+
+`rms-dvo-confirm` repeats the promising every-position policy five times
+plus one warmup with GJ controls. All 36 reports preserve every size/count
+entry. Pure's target improves 7.834 -> 5.433 ms (-30.65%), whole query
+-20.78%, wall -3.17%, every pair and both order groups. Elided Pure improves
+214.747 -> 5.460 ms. Elision adds no demonstrated benefit once cadence is
+fixed. GJ's target is still 2.201 ms: the repaired native plans remain about
+2.47x slower on the target and 2.7-2.9% slower in process wall. A broader
+bounded native screen is needed before drawing any general scheduling claim.
