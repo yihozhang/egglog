@@ -2087,3 +2087,76 @@ Artifacts: native-probe-order-scalar-only/independent-scalar-only-audit.json/.tx
 journal-ready-independent.txt, native-scalar-only-interpretation.json/.txt;
 probe-order-scalar-only/scalar-only-policy.patch. No experimental production
 code is retained yet.
+
+## Five-pair scalar-only confirmation: local wins and one small tradeoff
+
+The same f3ee frozen binary confirms original versus scalar-only on all twelve
+native panels with five timed pairs and two warmups: 168 successful runs,
+593,124 ordered entries, all exact own-reference and within-strategy fingerprints,
+complete provenance, no excluded panels. All seven drivers exit zero. No build
+or other engine overlaps measurement; CPU24/j1/no-decomp and prior limits apply.
+
+Query/wall changes are Llama live-MinCover -2.985%/-2.020%, Qwen Pure
+-2.016%/-1.351%, Qwen live-MinCover -1.575%/-1.152%, and eggcc live-MinCover
+-1.483%/-1.105%. Each improves all five pairs and both order groups. RMS Pure
+target improves 14.386% in all five pairs; whole query improves 7.861%.
+Llama Pure is only -0.493% query, four of five pairs. Hard32 and CYK are near
+neutral with mixed pairs.
+
+The eggcc Pure discovery outlier does not recur. Confirmation instead finds
++0.647% query (four of five slower, median +0.769%), with the Gamma/ival rule
+adding 1.460 ms against 1.407 ms total query growth. Wall is +0.028% with mixed
+pairs, including one slow off wall observation. Whisper beta also has small
+target losses: Pure +14.9 microseconds/+1.144% (four of five), live-MinCover
++18.53 microseconds/+2.507% (all five and both orders); whole query is neutral.
+Retain these tradeoffs rather than presenting the policy as uniformly faster.
+
+A separate same-binary PK confirmation completes 84 runs and 300,027 ordered
+entries, each exact to its own prior planner reference; PK off/scalar-only
+vectors and final sizes are identical. All 45 individual Ramp target pairs
+improve, in both execution orders. Three-rule sums improve Hard32 9.088%
+(2.700 -> 2.455 ms), Hard128 7.884% (6.648 -> 6.124 ms), and resize 8.886%
+(13.162 -> 11.993 ms). Whole-query/wall changes against PK-off are
+-0.621%/-0.324%, -1.184%/-0.584%, and -1.594%/-0.443%; query improves all five.
+Hard128's 3.642 ms query saving exceeds the target's 0.524 ms, so do not assign
+all surrounding-rule movement to this sort. Whisper is a zero-admission control
+with mixed timing shifts, not a sorting result.
+
+The PK planner itself remains unpromoted. Resize scalar-only still loses to
+GJ by 0.935% query in all five pairs, and Ramp/Ramp remains 9.559% slower.
+Late entries 68/ordinal1 and 71/ordinal1 improve 57.469%/51.909% against PK-off,
+but cost 37.756/41.661 microseconds versus GJ's 2.059/4.563. The known sixteen
+cross-GJ ordered-entry differences remain explicit; within-PK equality is exact,
+and no blanket cross-planner equivalence is inferred. Resize driver exit2 is
+that known distinction, not a new ordering failure.
+
+Two untimed full-Pure Gamma captures with the current binary preserve all
+own-mode count/changed/aggregate/updated/can_stop/final-size oracles. Independent
+audit accepts 10,502 full ordered entries and fourteen target entries. Its seven
+entries and nine matches have the same logical plan: Gamma cover with scalar
+VVO[col1] and Project[col1] probes, followed by scan-only stages. Older saved
+Pure/live-MinCover plans already show that shape and match current entry counts.
+The fresh captures do not establish actual runtime representation, lengths,
+probe order or rejection rates. The same Gamma target under live-MinCover has
+a small mixed-sign improvement, so a new width/length threshold is unwarranted.
+Hold the flag-free candidate while assessing that runtime question and finishing
+the persistent scalar-plus-tuple oracle; broad production validation is still
+required before retaining code.
+
+Saved native-versus-GJ mining provides a separate planning lead: six trips=4
+Add/Mul/LessThan loop-unroll rules under live-MinCover save 0.802/0.818 ms
+on Llama/Qwen (about 46-47%), every individual rule and all three saved pairs.
+All 58/59 per-rule ordered entries are exact but produce zero matches, and the
+native workload context differs. Pure loses on this family. Prior notes flagged
+it from one sample, but no isolated confirmation was found. Exact selectors and
+source paths are prepared; a selective experiment must establish the benefit
+before deriving a structural planner rule. Other unexplored positive-output
+native wins are at most 59 microseconds.
+
+Artifacts: native-scalar-only-confirm/independent-confirm-audit.json/.txt
+and journal-ready-independent.txt; pk-scalar-only-confirm/
+independent-pk-scalar-only-audit.json/.txt; eggcc-gamma-order-plans/manifest.json;
+eggcc-gamma-order-plans/independent-plan-audit.json/.txt;
+native-rule-win-reassessment/README.txt, analysis.json and selectors.json;
+scalar-only-production/scalar-only.patch (unapplied). The workspace still
+contains only the original user source edits.
