@@ -543,3 +543,58 @@ dispatcher shrinks again to 151 bytes and only an 8-byte alignment push, versus
 ordinary expansion layouts remain unchanged. Final confirmation uses the
 root harness's full 15 timed repetitions plus three warmups, followed by math
 and an interleaved three-timed/one-warmup external 81-case confirmation.
+
+## Clean default candidate confirmation (2026-10-22)
+
+`root11-default-batch-confirm`: 15 timed repetitions plus three warmups,
+original baseline versus the clean default implementation, CPU24 and one
+thread with --no-decomp. All 330 timed runs succeed with exact per-workload
+stdout hashes. Cykjson improves 14.25% in all 15 pairs (range 12.87%–17.05%).
+The arithmetic mean of workload changes is -1.11%, passing bench.py's policy;
+summed mean wall time is -0.055%, effectively neutral. Excluding cykjson gives
++0.177% summed time. Other means are within 0.3% except eggcc-extraction
++1.05%, whose paired median is +0.27% and one +18.15 ms pair contributes
+65% of its net loss. This outlier is retained in the official mean.
+
+`math12-default-batch-confirm`: five timed pairs plus one warmup. All 12 runs
+preserve every final size and every one of 352 seminaive report-entry counts.
+Query mean 2.044947 -> 1.989148 s (-2.729%); all five pairs improve
+2.23%–3.02%, paired median -2.86%. Wall mean 9.278480 -> 9.206623 s
+(-0.774%), with all five pairs improving 0.29%–1.21%. Add associativity and
+distribution account for 90% of query savings. Merge/rebuild also improve
+slightly, so approximately 78% of wall reduction is attributable to query
+time. The unchanged factoring triangle is slightly slower (+2.47 ms), much
+less than the repeatable gains elsewhere.
+
+`external-default-batch-confirm`: all 81 cases, three timed repetitions plus
+one warmup, alternating order. All 648 runs succeed, all-phase sizes match,
+and independent checks find identical printed per-rule match-count multisets
+for every case. Summed mean wall time 80.78886 -> 80.87593 s (+0.108%);
+geometric mean of mean ratios +0.138%, arithmetic mean +0.139%. Suite summed
+changes: Luminal +0.971%, eggcc -0.088%, Hardboiled -0.034%. This is broadly
+neutral, not an across-the-board win. Candidate-first pairs have geomean
++0.014%, versus +0.200% for baseline-first, illustrating subpercent order
+sensitivity. Gemma4_moe (+1.515%) and whisper (+1.237%) need balanced
+follow-up; raytrace improves 0.273%, and prior conv1d192 slowdown does not
+repeat (-0.458%, all three pairs faster). No snapshot warning arises in this
+confirmation. The known smaller-table nondeterminism remains non-blocking.
+
+The two uncertain Luminal cases have identical rule match counts across all
+eight runs. Gemma4 wall pairs +1.46%/-0.47%/+3.56% track query variation in
+merge-FE-FE-Add/Mul. Whisper input and header are byte-identical to the root
+workload, but external wall pairs are +1.20%/+2.20%/+0.31%; search accounts
+for most of the mean loss. An eight-pair follow-up balances four pairs in
+each orientation before the implementation is committed. Formatting and
+independent production-patch scope review pass; existing user edits are
+explicitly excluded from the prepared production patch.
+
+The balanced follow-up (`external-default-batch-followup`, eight timed pairs
+plus one warmup, four timed pairs in each orientation) completes all 36 runs
+with no size warnings. Gemma4_moe reverses its initial regression: wall means
+9.6337 -> 9.5557 s (-0.81%). Whisper's loss shrinks to 0.38%
+(0.4608 -> 0.4625 s). The larger initial Luminal losses are therefore not
+consistent across sessions. Retain the modest default batching change for
+its repeated cykjson and math gains; describe the broader suites as neutral,
+not universally faster. The rejected runtime/planner prototypes stay archived
+outside the working tree. Further exploration will use actual factor-count
+telemetry before considering extension to three or more factors.

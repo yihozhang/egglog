@@ -249,6 +249,24 @@ impl Bindings {
         self.assert_invariant();
     }
 
+    /// Append columns to an already initialized batch without a scalar map per row.
+    /// `used_vars` must match the set that initialized this batch, and `fill`
+    /// must assign every element of each supplied column slice.
+    pub(crate) fn append_initialized(
+        &mut self,
+        count: usize,
+        used_vars: &[Variable],
+        mut fill: impl FnMut(Variable, &mut [Value]),
+    ) {
+        assert!(self.matches > 0 && self.matches + count <= self.max_batch_size);
+        for &var in used_vars {
+            let start = self.var_offsets[var] + self.matches;
+            fill(var, &mut self.data[start..start + count]);
+        }
+        self.matches += count;
+        self.assert_invariant();
+    }
+
     /// A method that removes the bindings for the given variable and allows for its values to be
     /// used independently from the [`Bindings`] struct. This is helpful when an operation needs to
     /// mutably borrow the values for one value while reading the values for another.

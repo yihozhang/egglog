@@ -2503,6 +2503,123 @@ struct InPlaceActionBuffer<'a> {
     batches: DenseIdMap<ActionId, ActionState>,
 }
 
+impl<'outer> InPlaceActionBuffer<'outer> {
+    /// Expand at most two existing leaf factors directly into action columns.
+    fn try_push_factorized_batch<'scope>(
+        &mut self,
+        action: ActionId,
+        bindings: &mut DenseIdMap<Variable, Value>,
+        factors: &BindingSet,
+        exec_state: &ExecutionStateSeed<'scope, '_>,
+    ) -> bool
+    where
+        'outer: 'scope,
+    {
+        let rule_set = self.rule_set;
+        let action_info = &rule_set.actions[action];
+        if factors.is_empty() || factors.len() > 2 || action_info.used_vars.is_empty() {
+            return false;
+        }
+        if exec_state.should_stop() {
+            return true;
+        }
+        let outer = (factors.len() == 2).then(|| &factors[0]);
+        let outer_len = outer.map_or(1, |(_, rows)| rows.len());
+        self.push_factorized_batch(action, bindings, factors, outer_len, exec_state)
+    }
+
+    // Keep batch scratch and flush state out of rejected factor expansions.
+    #[inline(never)]
+    fn push_factorized_batch<'scope>(
+        &mut self,
+        action: ActionId,
+        bindings: &mut DenseIdMap<Variable, Value>,
+        factors: &BindingSet,
+        outer_len: usize,
+        exec_state: &ExecutionStateSeed<'scope, '_>,
+    ) -> bool
+    where
+        'outer: 'scope,
+    {
+        let rule_set = self.rule_set;
+        let action_info = &rule_set.actions[action];
+        let bind_row =
+            |bindings: &mut DenseIdMap<Variable, Value>, vars: &[Variable], row: &[Value]| {
+                for (&var, &value) in vars.iter().zip(row) {
+                    bindings.insert(var, value);
+                }
+            };
+        let (inner_vars, inner) = factors.last().unwrap();
+        let outer = (factors.len() == 2).then(|| &factors[0]);
+        for outer_index in 0..outer_len {
+            if let Some((vars, rows)) = outer {
+                bind_row(
+                    bindings,
+                    vars,
+                    rows.get_row(RowId::from_usize(outer_index)).1,
+                );
+            }
+            let mut offset = 0;
+            while offset < inner.len() {
+                if exec_state.should_stop() {
+                    return true;
+                }
+                let len = self.batches.get(action).map_or(0, |batch| batch.len);
+                if len == 0 {
+                    // Initialize every mapping exactly as the ordinary path does.
+                    bind_row(
+                        bindings,
+                        inner_vars,
+                        inner.get_row(RowId::from_usize(offset)).1,
+                    );
+                    self.push_bindings(action, bindings, || exec_state.to_execution_state());
+                    offset += 1;
+                    continue;
+                }
+                let limit = (LOCAL_ACTION_BATCH_SIZE - len).min(inner.len() - offset);
+                let mut count = 0;
+                // Preserve per-row cancellation checks before the next action batch.
+                while count < limit && !exec_state.should_stop() {
+                    count += 1;
+                }
+                if count == 0 {
+                    return true;
+                }
+                let batch = self.batches.get_mut(action).unwrap();
+                batch
+                    .bindings
+                    .append_initialized(count, &action_info.used_vars, |var, dst| {
+                        if let Some(column) =
+                            inner_vars.iter().rposition(|candidate| *candidate == var)
+                        {
+                            for (index, slot) in (offset..offset + count).zip(dst) {
+                                *slot = inner.get_row(RowId::from_usize(index)).1[column];
+                            }
+                        } else {
+                            dst.fill(bindings[var]);
+                        }
+                    });
+                batch.n_runs += count;
+                batch.len += count;
+                offset += count;
+                bind_row(
+                    bindings,
+                    inner_vars,
+                    inner.get_row(RowId::from_usize(offset - 1)).1,
+                );
+                if batch.len == LOCAL_ACTION_BATCH_SIZE {
+                    let mut state = exec_state.to_execution_state();
+                    let succeeded = state.run_instrs(&action_info.instrs, &mut batch.bindings);
+                    batch.bindings.clear();
+                    self.match_counter.inc_matches(action, succeeded);
+                    batch.len = 0;
+                }
+            }
+        }
+        true
+    }
+}
+
 impl<'scope, 'exec, 'outer: 'scope> ActionBuffer<'scope, 'exec, ActionId>
     for InPlaceActionBuffer<'outer>
 where
@@ -2516,6 +2633,19 @@ where
         = Self
     where
         'scope: 'b;
+
+    fn push_bindings_factorized(
+        &mut self,
+        action: ActionId,
+        bindings: &mut DenseIdMap<Variable, Value>,
+        binding_sets: &BindingSet,
+        exec_state: &ExecutionStateSeed<'scope, '_>,
+    ) {
+        if self.try_push_factorized_batch(action, bindings, binding_sets, exec_state) {
+            return;
+        }
+        expand_binding_sets(self, action, bindings, binding_sets, 0, exec_state);
+    }
 
     fn push_bindings(
         &mut self,
@@ -3207,3 +3337,7 @@ where
 #[cfg(test)]
 #[path = "execute_tests.rs"]
 mod top_index_tests;
+
+#[cfg(test)]
+#[path = "factor_batch_tests.rs"]
+mod factor_batch_tests;
