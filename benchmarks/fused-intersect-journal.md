@@ -275,11 +275,110 @@ are too small to explain the timing penalty.
 
 PureSize and MinCover free-join strategies, with and without payload scheduling,
 all exceeded the initial 10-second watchdog. That cutoff is too close to the
-baseline to rank them. A separate 60-second diagnostic is running; PureSize
-has also exceeded that bound. Existing free join is applied only to default GJ
-rules by the temporary strategy switch; explicit rebuild strategies are intact.
+baseline to rank them. A separate 60-second diagnostic (`math12-freejoin-diagnostic`)
+confirms both unscheduled variants time out. With payload scheduling, PureSize
+takes 31.926 s wall / 24.546 s query and MinCover 31.736 / 24.364 s, versus
+GJ 9.361 / 2.053 s. Almost all query regression is the factoring triangle:
+0.252 s under GJ versus 22.514 / 22.325 s, with similar match counts. Final
+sizes agree; scheduled strategies agree with each other on matches but differ
+slightly from GJ. Existing free join is applied only to default GJ rules by
+the temporary strategy switch; explicit rebuild strategies are intact.
 Math has 4 one-atom rules (already MinCover), 18 binary rules, and 2 triangles.
 Eight binary constructor-output joins are the main targets; their shared key
 usually is not a primary key, so the reversal prototype does not help them.
 Investigate repeated payload projection and grouped terminal execution while
 preserving GJ's factorization, rather than applying whole-cover fusion blindly.
+
+The runtime screen (`math12-runtime`, three timed runs plus one warmup) has no
+winner. Same-binary GJ averages 9.3204 s wall / 2.0450 s query; cached binary
+fusion 9.5442 / 2.1995 s; streaming terminal payloads 9.8072 / 2.2531 s (one
+2.541 s query outlier); combined runtime flags 9.6412 / 2.1061 s. The latter
+reduces the query penalty to 3.0% but still regresses wall time 3.4%. Stream's
+median query time also regresses 3.3%, so the outlier does not hide a win.
+Candidate variants agree on exact per-rule/per-iteration counts; all final
+sizes agree with GJ, with the previously noted order-sensitive count changes.
+Combined flags leave Add associativity +7.4%, distribution +1.5%, and Mul
+associativity +8.8% versus GJ. No performance implementation is promoted.
+
+Next screens isolate PureSize/MinCover to binary queries (keep triangles GJ),
+and fuse execution of the two terminal payload groups after a scalar binary
+intersection. The grouped prototype preserves distinct-key grouping, leaf
+constraints, factorization, and the ordinary per-group dynamic tail order.
+
+The grouped-tail screen (`math12-tail-screen`, three timed runs plus one
+warmup) gives query improvements of 2.77%, 1.50%, and 2.27% in paired runs;
+wall changes are -1.09%, -0.33%, and +0.42%. Query medians are 2.0493 s for
+GJ and 2.0037 s grouped. Factoring saves 22.7 ms (249.1 -> 226.4 ms), about
+half of the query gain; Add associativity saves 9.9 ms, distribution 4.4 ms,
+and Mul associativity 2.8 ms. All recorded per-iteration counts, all 352
+individual seminaive report entries, and all final sizes match GJ exactly.
+Full core tests pass with the prototype enabled (175 tests), including
+filtered/stale groups, singleton/empty groups, prior factors, physical tail
+order changes, merge/gallop/hash intersections, and one/four workers.
+
+An untimed trace (`math12-tail-trace`) sees 359,512 eligible invocations,
+128,490 with no matching key, 636,268 direct keys, and 14,308,141 raw pairs.
+The 4,491 recorded reorder events count DVO calls, not necessarily swaps.
+It avoids one buffered frame per key and two nonzero frame-buffer allocations
+per eligible invocation; projected multirow factors still allocate buffers
+and Arcs. Trace output itself adds substantial overhead and is not a timing.
+
+Binary-only PureSize/MinCover both regress query time about 10%, despite
+keeping triangles on GJ. Their match vectors agree with each other across
+every run; total matches differ from GJ by +0.0913%. PureSize's rebuild time
+varies by about 0.5 s at iteration 12 despite identical match counts; its
+apparent wall improvement in some runs is not evidence of a query gain.
+A separate pass tests pruning unused private non-key payloads/timestamps;
+its full core suite passes (176 tests). Two timed runs plus one warmup
+(`math12-prune-screen`) give GJ 9.2800 s wall / 2.0477 s query, MinCover
+binary 9.7776 / 2.2740 s, pruned 9.6740 / 2.2006 s, and pruned plus runtime
+flags 9.6296 / 2.1816 s. Pruning recovers 3.23% of query time relative to
+MinCover binary but still regresses 7.46% versus GJ. Add associativity and
+distribution account for 88% of the recovery. Candidate count vectors agree
+with each other, with the same order-sensitive differences from GJ; final
+sizes agree. This planner experiment is also rejected.
+
+Rejected prototype code has been removed from the working tree, with a full
+temporary patch and frozen binaries retained under `/tmp/fused-lab`. The
+remaining grouped-tail candidate is isolated for confirmation against the
+original baseline. A sampled CPU profile (`math12-gj.perf`, 927 samples) has
+its largest exclusive costs in table merge, mutable table lookup, and memory
+movement; run_plan itself is about 1% exclusive. Release unwinding does not
+provide reliable inclusive stacks, so this is not a strict bound on join
+cost or a reason to attribute all query time to search.
+
+The isolated grouped candidate passes all 166 remaining core tests. A second
+small experiment replaces the two terminal factors' per-key Arc allocations
+and variable collections with borrowed views through the same product loop;
+it also passes all 166 tests. Frozen binaries `egglog-grouped-clean` and
+`egglog-grouped-borrowed` will be compared with the original baseline before
+promoting either implementation.
+
+Five interleaved timed runs plus warmup against the original frozen baseline
+(`math12-clean-confirm`) confirm much smaller gains: paired query medians
+-0.744% grouped (4/5 faster) and -1.427% borrowed (5/5 faster). Query means
+are 2.03975 / 2.02328 / 2.01304 s. Paired wall medians are only -0.396% and
+-0.196%, with phase-time outliers. Every final size and all report-entry
+match counts agree across all 15 timed runs. The 11-workload confirmation
+(`root11-clean-confirm`, five timed plus warmup) regresses the geomean by
+0.42% grouped / 0.53% borrowed, and summed means by 1.13% / 1.53%.
+Hardboiled-128 regresses 2.52% / 3.21%, whisper 3.11% / 4.40%; cykjson gains
+2.16% / 2.91%. All 165 timed runs succeed with equal per-workload stdout
+hashes. Neither implementation qualifies for promotion as-is.
+
+A temporary serial RHS timer (`math12-rhs-diagnostic`, removed from source
+after freezing its binary) separates full action batches from the final
+partial flush. Full RHS is 1.56197 s of 2.01614 s summed rule time, or 77.47%.
+The remaining 0.45417 s includes joins, projection, batching, state creation,
+clearing, counters, and diagnostic overhead; it is 4.89% of 9.28593 s wall.
+Final partial RHS is 0.00112 s and is outside the per-rule query timers but
+inside ruleset search/apply time. Counts and sizes equal the baseline.
+Largest non-RHS residuals: factoring 197.63 ms, Add associativity 116.22 ms,
+distribution 68.08 ms, and Mul associativity 22.74 ms. This makes factoring
+the largest remaining search target despite its much smaller output count.
+
+Next temporary experiments: fill existing action columns directly from a
+grouped Cartesian product at the same 128-row batch boundaries, and cache
+terminal payload projection by scalar key within a filtered binary fused
+invocation. The latter keeps cover-row order and bounds retained storage to
+4096 keys / 262144 logical cells, bypassing new cache entries beyond the cap.
