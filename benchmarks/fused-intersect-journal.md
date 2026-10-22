@@ -3961,3 +3961,40 @@ This same-binary experiment does not measure codegen overhead against clean GJ.
 Artifacts: catalog-cover-prefilter-direct-v2/{independent-screen-raw-audit.json,
 independent-acceptance-note.txt,runtime-local-interpretation.json,
 runtime-local-interpretation.txt}; runtime-interpret-catalog-direct-v2.py.
+
+
+## Remaining local wins and the next work census
+
+A read-only source check closes the proposed lazy-isolation revisit. The rejected
+clean lazy patch already changes only the filtered-fused match arm. Both empty-
+probe scan arms, scalar intersections, entry setup and persistent state are
+byte-unchanged. Current execute.rs exactly matches that experiment's base. There
+is no identified unconditional source work to remove from default GJ; an added
+filtered-only guard would be redundant. The fresh fifteen-pair regressions remain
+the evidence, without a speculative code-layout explanation or outlining trial.
+
+The saved native-win inventory identifies no new material positive-output family.
+Direct-exp's direction/refresh/bridge behavior and the Ramp/WMMA hybrid families
+have already been investigated. List-tail is the strongest remaining target for
+observing work rather than repeating aggregate timing. Its seven-pair selected
+native results save 162.338/261.278/22.052 microseconds in positive-output entries
+on Llama/Qwen/Whisper, respectively, all seven pairs. The final zero-output entry
+instead loses slightly in each model. Exact saved plans already show the change:
+GJ indexes tail keys on both relations and keeps payload leaves factorized;
+native scans contains rows and probes ICons.tail. Actual acquisition/build work
+and repeated-key probing were not observed. Whisper's second delta is a useful
+same-plan counterexample, losing despite the whole-rule gain.
+
+The next diagnostic will preserve those programs and observe per-entry stage,
+source, acquisition, scan, probe and frame counts, with bounded scalar-key samples
+where useful. It is not a new planner policy or a timing experiment. Historical
+native/GJ selected comparisons used DEFER1 for both strategies; that qualifies
+the control but does not show the extra traversal explains the structural gains.
+New default-GJ controls use DEFER0/BRIDGE0/LIVE0. The independent inventory and
+positive-entry recomputation are in native-local-wins-current-inventory/.
+
+A separate read-only lead remains open: the old full-primary-key reversal required
+every key column in the leader projection and could not supply an omitted explicit
+constant. Existing tests used constants only in non-key columns. The reported
+nth_from_end gap therefore has not been closed by the later scalar-catalog policy.
+Its exact target eligibility is being checked before any implementation trial.
