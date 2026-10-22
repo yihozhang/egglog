@@ -2909,3 +2909,46 @@ part of the evidence; the frozen local bundle is unchanged.
 Confirmation artifacts: native-lazy-confirm-prepared/{run.py,audit.py,plan.json};
 native-lazy-confirm/independent-native-confirm-audit.{json,txt}. Prepared plan SHA
 abd533eda2aa2bf3ffb29ab7e52d916ebfaa0682c9628d9eaf610789807adeae.
+
+
+## Clean lazy candidate builds with a fresh production control
+
+The flag-free candidate is frozen as lazy-fused-production/lazy-production.patch
+SHA 3be662d32c175d53e254540f1996f85e177e717b24e95741459647f34e3e6500.
+It applies directly to production plus the preserved user diff, with no prototype
+base stack. Runtime code starts with an empty original-order prober prefix and
+acquires a later descriptor only when reached. The independent fixture now has
+320 additional successful cover rows after initial failures, checks actual initial
+physical order and initial DVO selection, and independently counts over 256
+successful cover frames so intermediate draining and subsequent prefix reuse occur.
+
+The fresh-control builder succeeds with 167 core tests, 19 bridge tests and fmt.
+It records the same rustc1.91.0/Cargo toolchain, empty compiler override flags,
+Cargo.lock, actual Cargo binary artifact paths, and control-before-patch command
+sequence. Independent audit accepts all 18 pins and exact source/index/status
+restoration; original user changes remain intact. No production patch is applied.
+
+Fresh frozen binaries:
+- Control egglog-lazy-production-control SHA
+  97459cbb4efaae7cb1e8e467b8f125b3a1f150db65f716b41340de30572ebd5d.
+- Candidate egglog-lazy-production SHA
+  fbe4a0d79398ef3a72260bcd88954b6227e0ac014aaaa942c0a7fc0bd2b6ccc2.
+
+Artifacts: lazy-production-build-prepared/manifest.json (SHA
+3711ef46ecd01a12d2c9bd59e7312720f9807067603dd03c3e9acd1d422ce4cf),
+lazy-production-build/{manifest.json,independent-build-audit.json,toolchain.json,
+compiler-artifact-control.json,compiler-artifact-candidate.json,test-*.log}.
+The report-backed default-GJ root11 plus math-iter12 paired screen is being prepared.
+Its wall time will include report/trailer overhead and will not be mislabeled as
+unmodified-input wall time. No clean-candidate performance result exists yet.
+
+The independent retained-root prototype also freezes after source and fixture
+reviews: retained-cover-prefilter/retained-cover-prefilter.patch SHA
+aba4b94d51793d3c9892e0bae39b1f440a4b4b74bf7f43694543ca7e6d46681c,
+manifest fda87e26505a241735c1a883a5aac47f60c0c7286123f4197744cb3ae7c2f217.
+It remains separate from lazy acquisition, based on first-eight PK-v2 plus original
+probe-order switch. The fixture forces actual published-root reuse on real Dense
+and Sparse current subsets, independent row/action order, stale/slow filters and
+fallbacks. Explicit original CoverRanges test partition bypass via serial calls
+inside one/four-worker pools; they do not simulate concurrent publication races.
+This prototype has not yet been built or measured and is not retained.
