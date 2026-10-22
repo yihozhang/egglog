@@ -3018,3 +3018,51 @@ which calls activated. No counters will be added to this frozen timing binary.
 Artifacts: retained-cover-build/{manifest.json,test-*.log};
 retained-cover-timing-prepared/{run.py,audit.py,plan.json};
 retained-cover-timing/independent-timing-audit.{json,txt}.
+
+## Clean lazy candidate rejected after fresh default-GJ confirmation
+
+The separately frozen confirmation bundle (plan SHA
+44bbd6eb00e437a16b73e5e0803058d01bbfcba3d8cdddbb65abfd72e3d9fbe5)
+accepts all 68 reports and 270,096 ordered entries. Same clean frozen binaries,
+flags, inputs and resources, 15 fresh timed pairs plus two warmups, exact own
+historical/current screen and current cross-binary outputs; all 60 pins pass.
+
+Fresh Hard128 query increases 1.172% (median 1.235%, 14/15 slower) and report
+wall .465% (13/15 slower). Eggcc query increases .980% (median .807%, 10/15
+slower) and wall .598% (9/15 slower). Both order groups regress in each metric.
+For explicitly labeled combined-20 context, including the initial five pairs,
+Hard128 query is +1.222% (19/20 slower), wall +.603% (18/20); eggcc query is
++1.347% (15/20), wall +.583% (13/20). The fresh 15 are the confirmation;
+pooling replaces neither experiment and removes no sample.
+
+Fresh per-rule localization: Hard128 adds 3.556ms query, with ConvolutionShuffle+
+adding 1.924ms (54.1%), almost entirely zero-output entries; iteration61/ordinal9
+alone adds 1.688ms. Eggcc adds 1.462ms, with Project/Gamma interval-union adding
+1.415ms (96.8%), split .812ms zero-output and .603ms positive-output. These locate
+the measured cost without establishing its cause. The changed filtered-fused
+arm is inactive in the inspected default GJ plans; no code-layout tuning is
+attempted. The standalone production patch is rejected and remains unapplied.
+Its within-native fused-path benefits remain an experimental lead for future
+planning work. External81 stays unrun; its draft preparation is incomplete.
+The report-backed wall numbers are not original-input/no-report wall claims.
+
+Artifacts: lazy-production-regression-confirm-prepared/{run.py,audit.py,plan.json};
+lazy-production-regression-confirm/{independent-root11-audit.json,
+independent-root11-audit.txt,interpretation.json,interpretation.txt};
+interpret-lazy-production-regression-confirm.py.
+
+The retained-root timing also has an independent raw-data recheck: all 45
+reports, 123,705 entries and 52 pins pass. Its three Ramp targets save .661ms
+in Hard128 but other rules add 1.375ms; the largest convolution/WMMA offsets
+are .455/.321/.255/.195ms. Resize's two main targets save 1.447ms, of which
+only .162ms is in the two highlighted late entries. Therefore the separate
+activation diagnostic must inspect complete target invocations, not infer the
+whole gain from those late entries. Details: retained-cover-timing/
+{independent-interpretation.json,journal-note.txt}.
+
+A read-only planning assessment found no new justified general static gate
+from live MinCover membership plus full-PK proof alone. A distinct possible
+follow-up is a single precompiled alternate chosen when fresh per-focus
+headers prove a cover singleton. This may avoid the earlier per-recursion
+synthetic-stage cost, but candidate choice, registration overhead and scope
+are still under review; no implementation or performance claim exists.
