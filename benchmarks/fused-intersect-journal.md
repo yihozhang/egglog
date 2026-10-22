@@ -766,3 +766,114 @@ statistics therefore help without fixing the strategy. No general refresh
 policy is retained. The next isolated experiment promotes an already
 refined cover when it can narrow the next otherwise unrefined cover,
 changing the static direction without adding indexes or runtime replanning.
+
+The bridge-cover ordering experiment promotes the smallest already-refined
+remaining cover when it can introduce a variable of the next wholly
+unrefined cover. It changes native ordering only, preserves independent
+roots and already-refined covers, and adds no indexes or runtime statistics.
+The prototype passes 168 core tests with flags off/on, including an actual
+generated-probe/order test. Temporary source changes are removed after
+freezing the binary.
+
+`direct-exp-bridge` uses seven timed repetitions plus one warmup, with GJ
+and native live MinCover each bridge-off/on. All 96 reports preserve final
+sizes and every seminaive match/changed entry. Llama/Qwen logical plans are
+unchanged. Whisper now generates OpMul -> IConsOuter, removing its third
+unrefined starting cover; its stage instructions match Llama/Qwen. The
+Whisper target falls 24.880 -> 1.107 ms (-95.55%), query -6.81%, wall -3.63%
+against cached native, with every pair improving. But GJ's target is
+0.710 ms, so even the corrected direction remains 55.9% slower there.
+Whole-query/wall against matched GJ change +0.18%/+0.22%, with mixed paired
+signs. This isolates the direction defect without establishing a native
+strategy winner for Whisper.
+
+`bridge-cover-root11-pilot` globally compares the same four treatments,
+one diagnostic sample each. Of 44 attempts, 34 complete and 10 time out.
+Native bridge-on/off complete the same six workloads; both time out on
+Hard32/128, paged_llama, qwen3_moe, and whisper. All completed final sizes
+agree. Every bridge-on/off individual entry vector agrees within strategy;
+only the previously observed native-vs-GJ eggcc order differences remain.
+The bridge repair also reduces CYK native query 354 -> 50 ms and old Luminal
+73 -> 33 ms, but these still cost 2.07x/5.16x matched GJ. No whole-workload
+native winner appears. Other pilot changes are small relative to the large
+remaining native regressions and do not justify performance claims.
+
+The next hybrid experiment retains scalar GJ output/anchor intersections
+and makes their execution a prerequisite for one fused shared-key tuple.
+Earlier key-pair fusion preserved scalar stages but allowed DVO to run the
+fused scan first; a static position does not preserve the narrowing path.
+The proposed scope is one cover, at least two shared primary-key variables,
+full key supplied by those variables/constants, and a shared non-key anchor.
+No general native switch or replanning policy is promoted from these results.
+
+`direct-exp-bridge-wall` confirms the isolated selected-rule change on
+original unmodified inputs, without reports or added printing: 15 timed
+rounds plus three warmups, GJ and GJ+bridge controls. Against the matched
+control, llama wall improves 0.50% (13/15 pairs) and qwen 0.57% (13/15).
+Whisper changes +0.08%, effectively neutral. Against plain GJ the changes
+are -0.36%/-0.88%/-0.04%. All 135 timed executions succeed; empty stdout
+hashes are not a correctness oracle, supplied instead by the earlier
+96-report entry audit. These are modest local process gains, not a general
+strategy selector.
+
+A small executor follow-up (`tiny-native-tuple`) reuses SmallExact for
+non-inline tuple subsets of up to SMALL_RESIDUAL rows when the existing
+Packed/Catalog continuation-slot test is false. It passes 168 core tests
+with the flag off/on and is removed after freezing. Five timed repetitions
+plus one warmup compare native bridge/GJ, each shortcut-off/on, on CYK,
+old Luminal, and exact direct-exp in llama/qwen/whisper. All 120 reports
+preserve sizes and every individual match/changed entry. Native whole-query
+changes are +0.04%/+0.31%/+0.09%/-0.20% for the first four; the Whisper
+target is unchanged (+0.05%). Apparent Whisper wall reduction is largely
+outside reported execution and accompanied by a similar GJ control query
+shift. No useful targeted improvement is established. The slot predicate
+also admits Owned plan roots that may have reusable prepared indexes; this
+limits the claim that eligible sources are uncached. No incidence counter
+proved how often the new branch ran. Discard this shortcut without further
+timing expansion; any revisit needs direct routing coverage and reuse data.
+
+`native-batched-beta` isolates the two rules containing "cublaslt row-order
+batched scaled c", seven timed repetitions plus one warmup on llama, qwen,
+and whisper. GJ/PureSize/live MinCover share bridge ordering and scheduling.
+All 72 reports preserve sizes and every individual match/changed entry.
+Live MinCover reduces the combined target 42.98%/41.90%/42.06%, saving
+0.337/0.339/0.521 ms; each rule improves in all seven pairs on every input.
+PureSize gains only 4.05%/6.76%/3.87% combined. Whole-query Min changes
+-0.79%/-0.61%/-0.72%, wall -0.08%/-0.31%/-0.51%; effects outside these
+targets limit attribution, especially Whisper. Both targets have zero
+matches. Saved external data likewise show zero for both in all seven
+Luminal inputs across 70 observations; other suites lack these rule names.
+
+Exact beta plans explain an important difference from PureSize. Each GJ
+plan has 42 stages (35 scalar intersections, seven payload scans). PureSize
+has 31 covers and 42 index accesses; seven or eight tails bind only dead
+timestamps. Live MinCover has 18/19 covers and 39 index accesses, with no
+timestamp-only tails. It removes 12/13 stages but only three probe slots;
+all removed bindings are dead timestamps. Reduced stage setup and initial
+quadratic scheduling work is plausible, not separately timed attribution.
+A new narrower experiment will remove only provably redundant dead cover
+stages while preserving original cover selection and probe directions.
+The earlier dead-projection prototype explicitly kept otherwise-empty
+stages, so this is a distinct check.
+
+`anchored-key` groups one complete shared key in a GJ SinglePlan, retaining
+scalar non-key anchors and requiring them to execute first. It passes all
+171 core tests with the flag off/on and the prerequisite disabled. One
+existing scalar-shape assertion is adapted only in a temporary test patch
+to accept the intended two-key fused group plus scalar anchor; its exact
+stale-row output/count oracle still runs. New tests cover constants, repeated
+keys, incomplete/private-key rejection, slow constraints, stale rows, one/four
+workers, and recursive prerequisite ordering. All prototypes are frozen
+separately and removed from main.
+
+`anchored-root11-pilot` rejects this as a broad policy. Of 44 attempts, 42
+complete and both Whisper hybrid variants time out. Every completed final
+size and individual entry vector agrees. Llama's zero-output 2D scaled-C
+plus-matmul beta rule alone rises 0.385 -> 649.814 ms; disabling the anchor
+wait still costs 639.231 ms, so grouping itself causes that loss. Python
+additionally gets worse when forced to wait. Hard32's apparent whole-query
+gain is not trustworthy attribution: most hot rules, single-atom rules,
+merge/rebuild, and time outside the reported run all improve together in
+this unwarmed first case. Hard128 does expose two positive-output local
+gains (~26 -> 21 ms, 64 matches each), overshadowed by a different rule's
+103 ms regression. These need exact-rule isolation before conclusions.
