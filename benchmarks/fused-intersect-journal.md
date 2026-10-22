@@ -3066,3 +3066,60 @@ follow-up is a single precompiled alternate chosen when fresh per-focus
 headers prove a cover singleton. This may avoid the earlier per-recursion
 synthetic-stage cost, but candidate choice, registration overhead and scope
 are still under review; no implementation or performance claim exists.
+
+## Actual retained-root activation and scan conservation confirmed
+
+The isolated activation patch fa225f6b050ba152fecf7aa682125913cc1422e4629cd2d47c9e3ddd561aef6d
+adds fixed counters to the exact retained-root implementation, with no new index
+lookup, key enumeration, scan or policy change. Source manifest ba9b7850 and
+builder manifest dde81147 are frozen. The builder passes 175 core tests in three
+configurations, 19 bridge tests and fmt, resolves the actual Cargo JSON executable,
+and restores every worktree/index/status byte. Diagnostic binary
+cb4bc6e21d2c7d367f9b5da1374009e7495331ce079f3e5133a0806ceac2f435.
+
+Six PK-off/on captures use all three exact Ramp descriptions and every entry,
+not only late entries. Runner manifest 2cade8770458c3963d7c3ef9ca0b4862bad7061633d36c48a8f0c118d06fd0da
+pins 57 files. Both integrated and independent raw-data audits accept six reports,
+16,494 full ordered entries and 628 target entries. Own untraced references and
+current off/on complete fingerprints agree. Logical stages, physical positions,
+source-size summaries and completed frames agree; requested/projected/visited/
+failed rows never increase. All reason counts and aggregate conservation pass.
+
+| Case | Filtered calls | Applied calls | Source/projected off | Selected/projected on | Completed frames, both |
+| --- | --- | --- | --- | --- | --- |
+| Hard32 | 118 | 47 | 19,301 | 5,693 | 2,472 |
+| Hard128 | 118 | 44 | 49,969 | 16,762 | 5,750 |
+| resize | 124 | 56 | 83,917 | 17,625 | 11,608 |
+
+These are cumulative observations across filtered-stage calls, not distinct
+table rows or whole-engine work. Off calls all report disabled. On fallback
+reasons (no scalar / driver not smaller / unpublished / raw not smaller) are
+8/47/8/8 for Hard32, 8/52/10/4 for Hard128, and 9/52/5/2 for resize. Applied
+empty/nonempty counts are 8/39, 5/39 and 12/44. No missing-root, missing-family,
+partition, identity-conflict or counter-overflow case occurs.
+
+Hard128 iteration61's two Ramp/Ramp calls decline because the selected root
+family is unpublished: 19 driver keys each, source sizes 62 and 1,409. Their
+1,471 projected rows remain unchanged. Iteration69 applies and reduces 1,475
+rows to two. Resize iterations68/71 reduce 2,402 to one and 2,408 to six, with
+completed frames unchanged. Across full resize invocations, equal-lanes drops
+44,360 to 8,205 projected rows (30/64 calls applied), and Ramp/Ramp drops
+39,557 to 9,420 (26/60). The two late Ramp/Ramp entries account for only 4,803
+of 66,292 removed rows, 7.25%; most observed activation is elsewhere.
+
+This confirms the proposed access path operates and preserves successful work.
+Performance remains the separate counter-free three-pair result recorded above;
+no diagnostic duration prices the benefit or setup/cache costs. Artifacts:
+retained-cover-activation/{activation.patch,manifest.json,README.txt};
+retained-cover-activation-build/{manifest.json,independent-build-audit.json};
+retained-cover-activation-prepared/{collect.py,audit.py,runner-manifest.json};
+retained-cover-activation-diagnostics/{audit.json,independent-activation-analysis.json}.
+
+The next singleton-cover metadata census passes root and independent source
+review. It records the first proof-valid member of the initial live-MinCover
+size ordering, then observes current physical table/individual header sizes
+at normal cached focus refresh. It compiles no alternative, registers no extra
+families, and changes no executed stages. Its log action ids are not unique
+across skipped focuses/rulesets: opportunity counts will use chronological
+per-description observations, with full-report correctness audited separately.
+No census engine run has occurred yet.
