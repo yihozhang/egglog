@@ -2160,3 +2160,23 @@ eggcc-gamma-order-plans/independent-plan-audit.json/.txt;
 native-rule-win-reassessment/README.txt, analysis.json and selectors.json;
 scalar-only-production/scalar-only.patch (unapplied). The workspace still
 contains only the original user source edits.
+
+## Flag-free scalar-only candidate checks
+
+The production candidate contains only the mutable descriptor vector and the
+all-scalar stable length sort; it has no experimental planner/ordering flags,
+feedback traversal or diagnostic code. Its separate persistent fixture v2 uses
+real T(q,x) and T(q,y,x) schemas, with independent 13/21 versus 9/17 output
+oracles, one/four workers and all descriptor rotations. This exercises actual
+scalar reordering and mixed-stage fallback without relying on temporary PK
+tests. All 167 production core tests and 19 bridge tests pass, as does formatting.
+Both release binaries are frozen and the exact original source diff restored.
+
+Control SHA bff505ff3b2047f8b72169c73c6cfe49241184865abcba9d38ef182508a0f71d;
+candidate SHA 82e5e49d4a63f7865a7263c8f56e14f85e3fe41926329d74f09d3cdeff476784.
+Metadata: scalar-only-production-build/manifest.json, test-core.log and
+test-bridge.log. Source patches are scalar-only-production/scalar-only.patch
+(65aae112) and probe-order-fixture-v2/three-probe-tests-v2.patch (4e024928).
+Neither is retained yet. Broad production validation and a bounded untimed
+Gamma runtime-order diagnostic are being prepared; no further static capture
+or size-threshold fitting is planned.
