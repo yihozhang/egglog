@@ -3615,3 +3615,55 @@ claim is assumed. This is not a production promotion or another threshold sweep.
 Artifacts: fused-refinement-max-build/{manifest.json,independent-build-audit.json};
 fused-refinement-max-performance/{audit-root11.json,independent-root11-raw-audit.json,
 independent-target-interpretation.json,independent-target-interpretation.txt}.
+
+
+## Native max-input refinement: opposing local wins, general policy rejected
+
+Frozen plan 16ea2d59 pins 69 files and runs the already-tested 9a893bcc binary.
+Singleton selection is disabled. Within each established native context, only
+REFINE_MAX off/on changes; bridge/payload/live-cover settings retain their own
+accepted references. Three timed repetitions plus two warmups, CPU24/j1/
+no-decomp, five-second watchdog and 32GiB limit yield 50 successful reports.
+Independent replay accepts all 208,490 ordered entries, five panels, full own
+native and current off/on outputs, provenance and whole/per-rule paired stats.
+No GJ-equivalence or cross-binary timing comparison is used. Nothing is excluded.
+
+| Native panel | Max/off query | Max/off report wall | Faster query pairs |
+| --- | ---: | ---: | ---: |
+| hard32/pure | +21.006% | +16.998% | 0/3 |
+| llama/pure | +17.021% | +12.121% | 0/3 |
+| llama/min-live | +65.903% | +45.470% | 0/3 |
+| eggcc/pure | +2.078% | +1.443% | 0/3 |
+| eggcc/min-live | -0.030% | -0.060% | 1/3 |
+
+All four losing panels regress in all three pairs and both execution orders.
+Eggcc live-Min is neutral: median query +0.015%, only one faster pair. This
+rejects global maximum-input refinement independently of singleton selection
+or dual-program overhead. No confirmation run or external suite is warranted.
+
+There are nevertheless large, consistent local wins. Hard32 Pure saves 29.616ms
+(-89.50%, all three pairs) in a WMMA rule with 16 matches, but two convolution
+rules add 89.610ms and 26.351ms. Llama Pure saves 51.405ms and 51.279ms
+(about 78.8%, all three pairs) in two cublaslt GEMM rules, each with 13 matches.
+Its zero-output batch-collapse and batch-matmul rules instead add 185.804ms
+and 41.970ms. Live-Min loses 114.600ms on the expert-index marker, 66.143ms
+on the scaled-sigmoid marker and 55.785ms on FE/FE Mul. Eggcc Pure adds
+4.252ms to the vector extraction helper. Max credit can therefore expose useful
+access orders while badly promoting other paths; a positive local result does
+not establish a usable global policy or identify a safe admission condition.
+
+The separate root11 attribution also cautions against blaming every regression
+on that rule's own chosen fused stage: Hard128's dominant rule has only one
+selection among 151 archived census focuses, not mapped to the hot entry;
+eggcc's dominant Gamma rule has zero selections among seven. Unused alternates
+retain compiled stages/family vectors and repeat registration, but do not build
+indexes or allocate per-run prepared state unless selected. Newly interned
+families can enlarge shared cache-node metadata for other rules; no saved
+family-count telemetry quantifies that effect. A structural compile-scope
+question remains: avoid an alternate whose cover has no relational probe and
+only duplicates an existing private/RHS scan. This is under offline assessment,
+not an implemented gate or a claimed explanation of timing.
+
+Artifacts: native-refinement-max/{audit.json,independent-raw-audit.json,
+independent-acceptance-note.txt}; fused-refinement-max-performance/
+independent-loss-attribution.{json,txt}.
