@@ -998,3 +998,50 @@ entry. Pure's target improves 7.834 -> 5.433 ms (-30.65%), whole query
 fixed. GJ's target is still 2.201 ms: the repaired native plans remain about
 2.47x slower on the target and 2.7-2.9% slower in process wall. A broader
 bounded native screen is needed before drawing any general scheduling claim.
+
+`native-every-root11-pilot` broadens the cadence comparison to GJ, PureSize,
+and live MinCover, each default/every, one timed sample and a ten-second
+watchdog. Of 66 attempts, 50 succeed and 16 time out. All 14 completed
+native cadence pairs and all 11 GJ cadence pairs preserve final sizes and
+every ordered individual count/changed entry. Hard32 Pure differs from GJ
+in 13 entries, identically with cadence off/on, in addition to the previously
+known eggcc cross-strategy differences. Those are separate from the marginal
+cadence change; no new cadence-induced count differences appear.
+
+Cadence repairs large native costs beyond RMS: Pure query Llama
+6.559 -> 0.514 s (-92.2%), Qwen 9.283 -> 0.731 s (-92.1%), paged Llama
+6.761 -> 1.113 s (-83.5%). Live MinCover Llama goes 2.486 -> 0.497 s,
+Qwen 3.824 -> 0.733 s. Positive-output pair-fuse/grow rules contribute to
+these savings. No completed native workload beats GJ, and no timeout is
+rescued. The narrower follow-up retains the original cadence and additionally
+re-sorts before a large filtered FusedIntersect, excluding position zero and
+the last stage. It tests only the current instruction, preserving ordinary
+scalar GJ and scan-only-tail cadence without scanning the whole plan.
+
+`anchored-bound-admission` treats a zero key-domain estimate as unknown,
+falling back to the cover's own rows, then admits the selected candidate only
+if its bound strictly reduces that estimate. It passes all 172 core tests
+with flags off/on; synthetic semantic fixtures use explicit informative
+estimates so they still exercise fusion, while a new fallback test checks
+exact ordinary GJ stages and variable/constraint state for rejected cases.
+No state changes occur before admission. All temporary source is removed
+after freezing.
+
+The exact Llama beta safety check still fails on cost: GJ 0.488 ms,
+previous domain ranking 7.785 ms, admission 6.199 ms. Apparent whole-process
+improvement is unrelated cold/order variation. `bound-admission-root11-pilot`
+completes all 44 attempts and preserves every individual count/changed entry
+and final size. Nevertheless waiting admission raises query time about
+73%/80%/85%/91%/45% on Llama/paged/Qwen/Qwen3/Whisper against its matched
+GJ control. No-wait also regresses substantially; the other six workloads
+are roughly neutral in these single samples. The policy remains experimental.
+
+Five exact loss-plan traces identify a stable structural cause rather than
+an accidental row-count-one estimate. They select ECons(MIter, ENil) or
+ECons(MNum(0), ENil), each with key domains[1,1], while the ECons cover has
+116 or 188 rows. The domain atoms have zero physical keys or complete keys
+fixed by equality constants. Scalar GJ can therefore bind these keys from
+singleton sources before probing the list relation; grouping them into a
+cover scan discards that cheap access path. The next admission ablation
+rejects a selected group whose every key has such a provably singleton
+source, keeping ranking unchanged and avoiding a numeric product threshold.
