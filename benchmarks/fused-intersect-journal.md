@@ -2369,3 +2369,28 @@ prototype for future combined planner experiments, not a retained change.
 Artifacts: scalar-only-shared-sort-root11-independent.json/.txt,
 scalar-only-shared-sort-root11-oracles-independent.json/.txt,
 scalar-only-shared-sort-cyk-repeat-independent.json/.txt under /tmp/fused-lab.
+
+## PureSize versus GJ: distinguish planner wins from ordering wins
+
+A read-only recheck of the audited same-ceccc2a1, original-order runs confirms
+real positive-output PureSize wins: direct-exp Llama 1.2173 -> 0.7309 ms
+(-39.95%) and Qwen 1.4075 -> 0.8201 ms (-41.73%), five matches in each;
+list-tail 1.1251 -> 0.9503 ms (-15.54%, 5,509 matches) and 1.7015 -> 1.4404 ms
+(-15.35%, 8,169 matches). All three pairs and both order groups improve, with
+exact target and full-model count/size oracles. These are already-explored local
+families; full native Pure query remains about 13.4x/17.2x GJ in these contexts.
+
+The known Hard32 Ramp/Broadcast equal-lanes rule improves 1.1715 -> 0.9729 ms
+(-16.95%, 1,815 matches), with exact target vectors but differing full-Hard counts.
+WMMA load improves 49.09% but is zero-output. No unexplored positive-output Pure
+winner above 42.85 microseconds remains after the known families are excluded.
+The earlier 59-microsecond Project/Theta result was live-MinCover, not Pure.
+
+RMS must not be described as a Pure-over-GJ win: its saved target is GJ
+2.3005 ms, original-order Pure 5.6547 ms and size-ordered Pure 4.7674 ms.
+The 15.69% within-Pure gain still leaves it over twice GJ. Likewise the confirmed
+unroll family favors live-MinCover while Pure loses. These distinctions guide
+selective planner work; neither native strategy is recommended wholesale.
+
+Evidence: pure-versus-gj-local-evidence/README.txt, analysis.json, rankings.txt
+and artifact-hashes.json under /tmp/fused-lab. No new engine runs.
