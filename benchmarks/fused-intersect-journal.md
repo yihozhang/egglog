@@ -3735,3 +3735,71 @@ independent-build-audit.json}; singleton-relational-probe-performance/
 {audit-root11.json,independent-root11-raw-audit.json,
 independent-root11-acceptance-note.txt}; singleton-scan-only-family-assessment/
 {assessment.txt,evidence.json}.
+
+
+## Existing scalar catalogs expose a distinct fused-cover filtering opportunity
+
+The previous exact-root shortcut does not cover already-current full-table scalar
+catalogs. Ramp readiness had shown a current catalog even when the retained
+packed root was unpublished, but had not measured its groups. A bounded native
+Llama census now measures this access source without changing execution.
+
+Patch f856a12c (manifest 814c384d) adds one observer call after original fused
+prober construction, a read-only catalog lookup, and bounded counters on the
+accepted native activation twelve-patch base. Retained prefilter, original trace,
+and probe ordering are disabled. Only published, version-current scalar catalogs
+are inspected; nothing is inserted, initialized, refreshed or retained. The
+smallest actual Small/Packed scalar driver is inspected only when unpartitioned
+and its distinct-key count is smaller than the current physical cover. Distinct
+column groups give an exact raw union; current-subset membership is observed
+only when the entire traversal fits the remaining diagnostic budget.
+
+Limits per target entry are 1,024 inspections, 64 keys per group observation,
+and 65,536 physical membership visits. These are observation limits, not a
+proposed execution policy. Joint raw-union < cover counters distinguish a
+potentially cheaper access path from merely selective but expensive full-table
+groups. Deleted physical IDs remain included; normal live/slow predicates would
+still be required. Two tests cover missing/uninitialized/stale/current catalogs,
+no insertion/refresh, deleted groups, dense/sparse membership and budget bounds.
+
+Build manifest 8bf4b861 produces actual Cargo binary 47250f9a. All 177 core
+tests pass in off/census/PK-v2-census configurations, all 19 bridge tests and fmt
+pass, and original worktree/index/status restore exactly. Frozen runner 29559233
+pins 68 inputs/artifacts. Four full Llama captures compare census off/on within
+Pure and live-Min, CPU24/j1/--no-decomp/with-plan. All 15,308 ordered entries,
+684 target report entries and 342 observed target scopes pass independent raw
+checks: native own counts/flags/final sizes, exact within-strategy reported plans,
+commands/provenance and every counter/budget equation. No diagnostic duration is
+performance evidence.
+
+| Strategy | Eligible calls | Inspected | Current catalogs | Complete raw-smaller calls | Cover rows | Raw candidates | Current members |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Pure | 264,880 | 58,308 | 22,783 | 15,948 | 180,296 | 45,263 | 14,118 |
+| live-Min | 14,790 | 13,235 | 8,420 | 8,307 | 5,053,813 | 9,503 | 6,708 |
+
+These are sampled opportunities, not rows actually removed. Min potentially
+excludes 5,047,105 physical visits; the sigmoid rule accounts for 4,845,656.
+Its nonempty one-key stage6/column2 path alone accounts for 3,033,656 potential
+exclusions across 5,012 observations, so this is not solely empty-driver rejection.
+Pure potentially excludes 166,178 visits, including 73,332 in each of two GEMM
+rules. Both strategies also have missing and uninitialized catalogs; none of the
+inspected initialized catalogs is stale in these captures.
+
+Sampling is material: Pure skips 206,572 eligible inspections after 35 entries
+reach the cap; Min skips 1,555 after eight entries reach it. Pure has three key-cap
+skips; neither strategy hits the row budget. There is no overflow, identity
+conflict or partition observation. Only the selected minimum driver is assessed;
+these data say nothing about another larger driver. Do not extrapolate first-N
+samples or equate them with historical retained-root applications. Lookup,
+membership, sorting and allocation costs remain unpriced.
+
+This supports one small uninstrumented catalog-only policy trial, not promotion.
+The trial should reuse only an existing current catalog, decline when the raw
+union reaches the current cover size, preserve all normal filtering and physical
+row order, and bypass partitioned covers. It should add no diagnostic thresholds,
+root retention, alternate-driver search or other policy changes.
+
+Artifacts: native-catalog-cover-census/{manifest.json,README.txt};
+native-catalog-cover-census-build/independent-build-audit.json;
+native-catalog-cover-census-diagnostics/{audit.json,independent-raw-audit.json,
+runtime-interpretation.json,runtime-interpretation.txt}.
