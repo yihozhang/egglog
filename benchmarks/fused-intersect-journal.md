@@ -1592,3 +1592,33 @@ interaction design is sufficient; no new cache or planner machinery is needed.
 Artifacts: independent-packed-audit.json/.txt provides the complete report and
 per-rule/entry audit. packed-transfer-attribution.json/.txt records the exact
 34-entry correspondence, source/family signatures and other owner changes.
+
+
+## Resize exposes many more tiny lane nodes
+
+The additional resize GJ-wait/v1/v2 packed traces preserve each treatment's
+own pilot vector (2,855 entries each), all 101 final sizes, and provenance.
+Independent audit covers all nine Hard/resize traces and 24,741 entries;
+resize has 64 nonempty/15 empty report iterations and 67 auxiliary invocations,
+with no auxiliary builds. Its cross-GJ match differences remain explicit.
+
+For the exact-count Ramp/Ramp rule, GJ constructs just 59 Bop operand nodes
+covering 743 rows; fusion removes those. Ramp[2] lane nodes instead rise from
+95/340 input rows to 2,037/5,129: 1,084 catalog children and 953 packed children,
+all shared dynamic table-family nodes. Total rule builds rise 204 -> 2,039
+while input rows fall 45,730 -> 12,972. By comparison, Hard32 lane builds rise
+97 -> 435 (294 -> 982 rows), and Hard128 258 -> 987 (720 -> 2,110 rows).
+The untraced resize repeat has 22,136 matches in every Ramp/Ramp treatment,
+and mean time 4.766 -> 5.569/5.560 ms, all three native pairs slower. This
+supports a tradeoff between avoiding larger operand work and creating many
+more tiny lane nodes; the trace does not measure repeated probe costs.
+
+Do not broadly undo the tiny-source cache rule: commit b7f2af443 explicitly
+measured 40-70 repeat probes per published source on Whisper, with repeated
+stack construction costing about a fifth of search time. No archived
+singleton-only bypass was found. The next bounded experiment will compare a
+one-row SmallColumn fallback with and without preserving a validated original
+shared source; >1-row behavior stays as-is. Preservation must exclude local
+Direct slots, whose family-insensitive cache could otherwise return a node for
+the skipped column. Shared table-family publication distinguishes successors.
+This is a planned diagnostic, not a retained production change.
