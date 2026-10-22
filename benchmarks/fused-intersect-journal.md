@@ -4107,3 +4107,91 @@ in these targets, so they are not an activation oracle for the new experiment.
 First verify meaningful helper fixtures and actual reported target plans.
 Artifacts: constant-primary-key-reversal-assessment.txt;
 constant-key-private-planner-design.txt; constant-key-cover/ (draft only).
+
+
+## Constant-key prototype correctness and root-Llama eligibility
+
+The restricted planner plus independent complete-PK subset helper is now built,
+but remains an experiment outside production. Frozen V1 patch733d219f failed its
+first strict-GJ core run: 170 tests passed and the new planner oracle confused
+four distinct output rows with eight action matches. Its two variable-bearing
+witness rows multiply matches. The missing-key case additionally retains two R
+rows with equal projected payload, producing sixteen actions. This was exposed
+by baseline GJ before the new planner ran. V1 source/build/failure artifacts are
+preserved; source/index/status restoration was exact.
+
+V2 patchbca4ada2, manifest37211840 changes only that test oracle. It independently
+enumerates live R x S x W rows before projection, compares the complete external
+action-log multiset and report count, then separately compares the deduplicated
+output table. Production planner prefix, query routing, runtime helper and the
+entire executor fixture are byte-identical to V1. All 171 core tests pass in each
+of strict GJ, restricted planner and planner+helper configurations; all 19 bridge
+tests and formatting pass. The frozen actual Cargo binary is e9e8e92e. Independent
+build acceptance verifies all test logs, artifact provenance and exact workspace,
+index/status and original user-diff restoration.
+
+The planner is limited to explicit constant PK slots plus exactly one varying
+shared physical key and a private RHS-live non-key payload. The helper fills the
+omitted constants for existing primary lookup, only from supported already-built
+Small/Packed scalar drivers with k<C. Physical subset membership and sorted row
+IDs preserve normal scan/probe/action handling. Tests exercise actual Some paths,
+Dense/Sparse covers, constants on either PK side, stale/slow constraints, duplicate
+probe keys and fanout, unsupported drivers, incomplete/conflicting constants,
+empty drivers/covers, and explicit original CoverRange fallback. The catalog
+fallback fixture asserts an actual CachedColumn route. Partition tests are serial
+within one/four-worker pools, not a concurrent publication-race test.
+
+The first three untimed with-plan captures use tests/llama.egg, CPU24/j1/--no-decomp,
+20s/32GiB. GJ has DEFER0/helper0; both planner arms have DEFER1, with helper0/1.
+LIVE0/BRIDGE0 throughout, no other policies or selector. Planner/GJ therefore
+includes scheduling; helperON/OFF isolates the helper. Frozen runner67d2816b has
+55 pins. Independent raw audit accepts all three reports and 11,481 ordered
+entries: all own/cross counts, flags and final sizes agree; strict-GJ full plans
+match its corrected reference; helperOFF/ON full plans are identical. Every live
+binding-variable multiset is preserved.
+
+Both planner arms change 305 entry plans across nine descriptions, creating 332
+filtered nth_from_end covers projected on physical [0,2] with scalar list probes.
+Batch matmul contributes 27 entries/54 covers; eight cublaslt batched variants
+contribute the remainder. Every affected entry has zero matches. This establishes
+planner eligibility and correctness in that root-Llama context, not runtime
+helper activation, physical DVO order or speedup. No diagnostic timing is used.
+
+A provenance check prevents overclaiming the intended old regression: the two
+archived 225-match Mul/Sum rules are absent from tests/llama.egg entirely. They
+belong to the separate self-contained tests/luminal-llama.egg (CubeMul/TileSum
+rules at lines279/345), as confirmed by the old stage log's input location. This
+is also distinct from the current external Luminal benchmark. A separate exact-
+input three-arm capture is next; the current planner is not broadened to explain
+an absent rule.
+
+Artifacts: constant-key-cover-build/ (failed V1);
+constant-key-cover-v2/{manifest.json,constant-key-cover.patch,v1-preservation.json};
+constant-key-cover-v2-build/{manifest.json,independent-build-audit.json};
+constant-key-cover-plans-v2-prepared/runner-manifest.json;
+constant-key-cover-plans-v2/{audit.json,independent-raw-audit.json,
+independent-acceptance-note.txt}.
+
+
+## Two read-only follow-ups closed as existing mechanisms
+
+The list-tail construction census does not supply a new preconstruction
+uniqueness proof. A raw leader inside scalar Intersect would need to prove tail
+uniqueness before the avoided packed build, or group/deduplicate rows itself.
+consumed_buffer_ilist_contains has a full (tail,item) key with no fixed item.
+Observed delta index length equals input size only after construction. Repeated
+raw keys either repeat the opposite payload suffix or duplicate whole groups;
+keeping a one-key fused prefix plus GJ payload suffix repeats the old row-cover
+tradeoff and adds back the payload continuation Min removes. This is neither a
+new fused-only fix nor a reason to change ordinary scalar GJ.
+
+Grouping two shared variables with identical relation incidences while retaining
+private GJ suffixes is also already implemented by archived plan_gj_key_pairs.
+Its cloned planning-state construction and complete-PK-or-constant guard match
+that proposed shape exactly. Tuple probing still constructs/reuses a separate
+CachedTuple catalog or packed first-node/lazy children; raw cover scanning loses
+first-key group rejection. Prior bundled screens are not an isolated modern
+causal test, but restricting this existing shape does not introduce a new
+mechanism. No additional trial or threshold is proposed from either check.
+Artifacts: list-tail-index-elision-overlap-assessment.txt;
+runtime-two-shared-key-overlap-assessment.txt (source and prior-screen hashes).
