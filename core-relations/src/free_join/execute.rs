@@ -1426,7 +1426,18 @@ impl<'a, 'state, 'exec> JoinState<'a, 'state, 'exec> {
             TopLevelPartition::scan_size,
         );
         let chunk_size = action_buf.morsel_size(cur, instr_order.len());
-        if cur_size > 32 && cur % 3 == 1 && cur < instr_order.len() - 1 {
+        // Reconsider filters before a fused scan can expand the residual.
+        // Keep the first stage fixed because it owns the top-level partition;
+        // scalar intersections and payload-only scans keep their usual cadence.
+        if cur_size > 32
+            && cur < instr_order.len() - 1
+            && (cur % 3 == 1
+                || (cur > 0
+                    && matches!(
+                        &stages.instrs[instr_order.get(cur)],
+                        JoinStage::FusedIntersect { to_intersect, .. } if !to_intersect.is_empty()
+                    )))
+        {
             // Re-evaluate the remaining suffix after observing the residuals
             // produced by earlier stages. Packed child families make the
             // resulting atom-local successor choice safe to cache again.

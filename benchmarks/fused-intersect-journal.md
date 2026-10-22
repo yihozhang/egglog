@@ -1045,3 +1045,91 @@ singleton sources before probing the list relation; grouping them into a
 cover scan discards that cheap access path. The next admission ablation
 rejects a selected group whose every key has such a provably singleton
 source, keeping ranking unchanged and avoiding a numeric product threshold.
+
+
+## Filtered fused re-sort cadence confirmation
+
+The narrower scheduling policy keeps the modulo-three baseline and also
+re-sorts before a large current filtered FusedIntersect, excluding the first
+and final positions. It uses one current-stage check; ordinary scalar GJ and
+unfiltered payload tails retain their previous cadence. It does not change
+logical-prefix refinement, ordering keys, barriers, caches, or leaf handling.
+The production candidate is nine added lines and one removed line in
+execute.rs, with no diagnostic flags.
+
+`filtered-dvo-confirm` runs five timed repetitions plus one warmup for seven
+cases. All 198 reports preserve complete ordered per-rule count/changed
+entries and final sizes within each strategy across cadence variants and
+elision. Pure Llama query improves 6.614576 -> 0.518936 s (-92.15%), Qwen
+9.343010 -> 0.729709 s (-92.19%), and Hard32 0.750118 -> 0.383378 s
+(-48.89%). Live MinCover Llama improves 2.482997 -> 0.492040 s (-80.18%),
+Qwen 3.778445 -> 0.747323 s (-80.22%), eggcc 0.671895 -> 0.636997 s
+(-5.19%). The filtered policy retains essentially all of the every-position
+policy's tensor gains; the initial MinCover Llama and eggcc losses against
+that policy do not repeat. MinCover Qwen's +1.21% mean versus every-position
+comes from one +9.24% sample, with median -0.033% and three of five faster.
+
+RMS's unelided target falls about 29%, and elided Pure's 213.449 ms falls
+to 5.555 ms, but GJ remains faster at 2.268 ms. All these whole native
+workloads remain slower than GJ; some individual native rules regress even
+when total query time improves greatly. This is a fused-path scheduling
+improvement, not evidence to replace the default planner globally.
+
+The production-only frozen binary passes all 166 core and 19 bridge tests
+and formatting. `filtered-production-root11` uses unchanged original inputs,
+15 timed repetitions and three warmups, CPU24, one worker, --no-decomp.
+All 330 timed processes succeed and stdout hashes match (only Python prints
+nonempty stdout, so this alone is not the detailed count oracle). Arithmetic
+mean wall change is -0.027%, sum of mean times -0.036%: neutral overall.
+CYK improves 1.12% in all 15 pairs. Qwen's +0.67% cost repeats in 14/15
+pairs and both order groups; paged Llama +0.24%, Qwen3 +0.44%, and Luminal
++0.41% are also small costs rather than an across-the-board win.
+
+`filtered-production-external81` completes all 648 runs (three timed plus
+one warmup per variant). Independent audits verify exact final-size maps,
+printed per-rule count multisets, and binary/input/adapter/runner hashes.
+Sum of mean wall times improves 0.375%; geomean mean time improves 0.180%.
+Fifty-seven of 81 cases and 159/243 pairs are faster. Suite sums improve
+1.234% Luminal, 0.177% eggcc, and 0.242% Hardboiled. Perfect's +3.86% mean
+contains one +12.07% outlier outside the rounded query/merge/rebuild phases;
+conv1d_224's +0.97% is smaller but appears in all three pairs and query time.
+These receive focused follow-ups. The initial math12 run preserves all
+reported results and has query -0.10%, but wall +2.13%, driven by one
+8.797 s baseline versus other baselines 9.250/9.340 s; a repeated comparison
+is required before deciding whether to retain the patch.
+
+The fixed-key admission prototype is also frozen, with all 173 core tests
+passing in flags-off, admission, and combined configurations. It rejects a
+selected group when every grouped key is supplied by another real atom
+whose complete physical key is explicit constants or empty. It excludes
+the chosen cover, does not use row-count-one estimates, preserves ranking,
+and falls back before mutating planning state. Tests cover partial versus
+complete composite constants, zero-key sources, estimates being insufficient,
+self-exclusion, and exact GJ planning-state fallback. Performance is pending.
+
+
+The focused production checks resolve those concerns without hiding their
+variation. Perfect's eight timed repetitions plus one warmup preserve all
+18 size/count reports; mean wall +2.42% but median +0.028% and paired
+median -0.140%, with four of eight faster. Both binaries share the early
+95-96 ms execution state before later 77-80 ms runs; CPU times also change,
+while RSS stays similar. The cause is unestablished. Conv1d_224's eight
+pairs preserve all reports and yield wall -0.194%, query -0.198%, with both
+order groups about -0.19%; the earlier loss does not persist.
+
+Math12's five-pair, two-warmup follow-up preserves all 14 final-size maps
+and 352 ordered entries/changed flags in each report. Query is
+1.98714 -> 1.97949 s (-0.385%), wall 9.10426 -> 9.03817 s (-0.726%).
+Only two of five query pairs improve and order groups differ in wall time,
+so this supports neutral performance, not a reliable new math speedup.
+The first three-pair run's wall gap was mainly iteration-12 rebuild and
+merge, with no query regression; similarly fast runs occur for both binaries
+in the follow-up. No resource cause is asserted for math because its
+harness does not record those counters.
+
+Keep the small filtered-cadence change: it repairs substantial repeated
+native fused costs, remains neutral overall on default root11/external81/
+math12, and has exact detailed count validation. Retain the documented
+sub-percent default costs, including root Qwen, as tradeoffs. The retained
+patch adds only an explanatory comment to the measured condition; no
+experimental strategy overrides, admission rules, or flags are promoted.
