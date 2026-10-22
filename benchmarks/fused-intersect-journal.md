@@ -1824,3 +1824,39 @@ then assess native MinCover/PureSize behavior if the signal holds. Artifacts:
 pk-probe-order-panels/independent-probe-order-audit.json/.txt and
 ramp-dvo-diagnostics/runtime-interpretation.txt. No production sort is retained
 yet, and traced runtimes are not used in any performance claim above.
+
+The interleaved confirmation completes 84 runs (five timed, two warmups),
+covering 300,027 ordered entries. Every label matches its own prior vector
+and sizes; PK-off/on agree exactly. Resize's driver exit 2 reflects only the
+already documented GJ/PK differences, independently audited rather than
+ignored. All 45 native Ramp comparisons improve in both order groups. Trio
+time falls 8.30%/7.39%/9.66% at Hard32/Hard128/resize. The two late resize
+ordinal-1 entries improve 52.80%/52.38% in all five pairs, remaining
+38.53/41.45 microseconds versus GJ 2.08/4.64 microseconds.
+
+PK-on/off whole-query and wall changes are Hard32 -0.11%/-0.19%, Hard128
++0.52%/+0.45%, resize -2.29%/-0.65%, Whisper -0.93%/-0.32%. The local win
+does not imply a general process win. Hard128's +1.594 ms query change is
+the trio's -0.487 ms plus other rules' +2.081 ms; ConvolutionShuffle+ and two
+WMMA GEMM rules account for 86.8% of the latter. Non-Ramp paired deltas are
+-0.262/+3.975/+5.026/+0.571/+1.094 ms. The two large observations occur in
+opposite order groups; do not assign that outside-target shift to sorting
+without additional evidence.
+
+Default no-decomp GJ cannot reach this sort: plan_gj supplies singleton groups,
+compile_stage emits Intersect for their nonempty filters, and scan merging
+only merges empty-probe stages. The bridge's native table rebuilder also
+bypasses the internal MinCover rebuild-query fallback. Saved GJ plan census
+covers 24,617 reported plans and 96,050 scan-only fused stages with zero
+filtered fused stages. Thus GJ timing shifts are controls for variability,
+not ordering gains; Whisper's zero-admission PK shape similarly makes its
+reversed screen/confirmation sign a control observation. Actual changed-path
+coverage comes from PK, native strategies and explicit core tests.
+
+The next validation is bounded PureSize/live-MinCover ordering off/on across
+known completing shapes, retaining the current filtered-stage cadence and
+avoiding known full-native timeout cases. No production change is retained
+pending that check. Confirmation artifacts: pk-probe-order-confirm/
+independent-probe-order-confirm-audit.json/.txt and
+hard128-unchanged-rule-attribution.json. The screen's directional attribution
+is in pk-probe-order-panels/runtime-entry-analysis.json/.txt.
