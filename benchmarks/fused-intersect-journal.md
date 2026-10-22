@@ -2628,4 +2628,35 @@ from this observation yet. Traced elapsed fields are excluded from conclusions.
 Artifacts: unroll-one-cover-diagnostics/{audit.json,
 independent-stage-interpretation.json,independent-stage-interpretation.txt};
 unroll-one-cover-collector-prepared/manifest.json. Independent final provenance
-and stronger filtered-counter accounting are being checked separately.
+and stronger filtered-counter accounting also pass: all 59 pins, eleven patches,
+four 175-test core configurations, 19 bridge tests, formatting and exact saved
+source/index/status bytes are verified. All 1,368 stage records are accounted
+for; all 456 filtered visits satisfy probe0-attempts = projected rows,
+successive-attempts = previous-passes, frames = last-passes, and frames plus
+failures = projected rows. No early-empty prober-count exception occurred.
+See independent-final-audit.json/.txt in the same diagnostic directory.
+
+## Lazy fused-prober acquisition is an untried runtime lead
+
+Read-only archive review finds no previous lazy original-order fused acquisition
+trial; earlier deferred-binding, empty-index, ordering and probe-once experiments
+retain eager descriptor collection or address a different mechanism. The current
+trace establishes 684 unused acquisitions out of 912 per fused strategy (75%),
+1,368/1,824 combined. These are acquisition calls, not measured fresh builds.
+
+A temporary prefix prototype is warranted without another timing diagnostic.
+Existing probers can be reused in their original order; only a cover row that
+passes the built prefix requests the next descriptor. No successful frame can
+drain before all probes exist, so recursive execution sees the original fully
+built state. Rejected rows still roll back; only actually acquired sources need
+restoration, while untouched sources remain in BindingInfo. A prototype must
+verify these invariants with independent relational cases, later successful rows,
+draining, stale/slow filters, tuples and one/four workers. It will preserve eager
+behavior when the temporary probe-order switch requires all lengths up front.
+
+No lazy policy is implemented or promoted yet. Same-binary measurements must
+determine whether skipped work exceeds the additional completion check, including
+possible shifts in shared-index construction to later rules. A later production
+candidate would also need the default-GJ regression screen; earlier inactive
+sort-code regressions remain a warning against relying only on local gains.
+Evidence: unroll-one-cover-diagnostics/lazy-prober-feasibility.txt.
