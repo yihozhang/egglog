@@ -2557,3 +2557,75 @@ Runner manifest SHA e4b9e2fa7f66fdffe8b41cddba07bb18042a412af40a06a3d6d641b29bfa
 Artifacts: cover-readiness-build/manifest.json; cover-readiness-diagnostics/
 {audit.json,independent-final-audit.json} and six raw captures. No production
 source change is retained.
+
+## Follow-up diagnostics: unroll execution and bounded index groups
+
+The isolated unroll trace on the accepted one-cover stack is built. All 175 core
+tests pass in four configurations (off, traced GJ, traced one-cover, traced native
+live-Min), all 19 bridge tests and formatting pass, and the worktree/index/status
+are restored byte-for-byte. The trace copies the initial physical order after
+ordinary DVO and counts actual stage visits, projected rows, accepted frames and
+original-ordinal probe outcomes. It adds no sort, index acquisition, key lookup
+or clock; existing traced durations are only report-alignment identities.
+The six own-plan captures are prepared next, with no timing claim.
+
+Interpretation must distinguish actual suffix execution from plan setup. DVO
+uses a greedy quadratic selection with evolving refinement counts; shrinking
+23 GJ stages to 18 one-cover or nine/ten native stages can reduce setup even
+if all plans reject early. Grouped LoopStart preserves aggregate refinement
+credits but changes their timing, DEFER eligibility and recursive stage cadence.
+Native additionally projects timestamp column 6. Counters can establish work
+and reachability differences, not attribute all elapsed savings by themselves.
+
+Separately, the next readiness follow-up will enumerate only already-existing
+sorted scalar views, with at most eight keys as an observation bound. It will
+count raw group sizes and current-cover membership without collecting row sets,
+building indexes or changing execution. Physical candidate rows are distinct
+from live output rows; probe length metadata alone is insufficient.
+
+A potentially simpler future reuse design is now identified: an already-cached
+unconstrained shared root, keyed by (table, HeaderConstraintId0), is a valid
+superset of every current cover for that frozen table. Intersecting its existing
+empty-slow-constraint column groups with the current cover could avoid retaining
+initial root handles per plan. The follow-up will observe its actual presence,
+identity and group sizes rather than infer them from equal cardinalities.
+Lookup cost and availability remain unmeasured. Any later execution prototype
+must also preserve original top-partition boundaries despite cache-publication
+races, and preserve row order after combining disjoint key groups.
+
+Unroll patch SHA 30fcf7930164ededeca36186029bd81118c53e9be79d28087b57028c8436146c;
+binary egglog-unroll-one-cover-trace SHA
+d5d920c207af578593f6d9fa3d7468617fc2fae8f6df9a6e7b131a2353108223.
+Artifacts: unroll-one-cover-trace/{manifest.json,README.txt,unroll-trace.patch};
+unroll-one-cover-trace-build/manifest.json. No production change is retained.
+
+## Unroll execution: both fused plans reject before any suffix
+
+All six unroll captures pass the collector's full own count/size/static-plan
+oracles: 23,400 ordered entries and 702 selected scopes. Independent stage
+interpretation finds the same physical behavior for both orientations and both
+models. Each has 57 entries with nonempty roots; the remaining one Llama/two
+Qwen entries exit during root acquisition.
+
+GJ executes logical stages [2,4,3,0]: loop_id, dtype and slot_idx each accept
+one key, then the MNum trip-count intersection rejects. One-cover and native
+live-Min execute only logical stage 0 at physical position 0. Each projects
+exactly one LoopStart row and fails original probe 0 (MNum). Every subsequent
+probe attempt and accepted frame is zero. No suffix stage executes in either
+fused plan. Stage-0 input row/source summaries and probe lengths agree between
+the two fused strategies; all input roots are shared Owned sources.
+
+This identifies the early-rejection benefit relative to GJ, while ruling out
+executed suffix search as the explanation for native's additional advantage.
+Setup, plan-size-dependent ordering, timestamp projection and prepared access
+metadata remain distinct possible contributors. In particular, the executor
+constructs all four fused probers before the first MNum probe rejects, so equal
+attempt counts do not establish equal preparation cost. A read-only archive
+and implementation review will check whether deferring unused fused prober
+construction is an untried modest runtime improvement; no policy is implemented
+from this observation yet. Traced elapsed fields are excluded from conclusions.
+
+Artifacts: unroll-one-cover-diagnostics/{audit.json,
+independent-stage-interpretation.json,independent-stage-interpretation.txt};
+unroll-one-cover-collector-prepared/manifest.json. Independent final provenance
+and stronger filtered-counter accounting are being checked separately.
