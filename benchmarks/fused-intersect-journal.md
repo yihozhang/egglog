@@ -3304,3 +3304,33 @@ Cargo artifact and restores full source/index/status exactly. The observer adds
 source zero/singleton counts and retention-loop work counters at existing
 operations; four Llama PureSize/live-MinCover off/on captures are next. These
 instrumented runs will establish activation, not performance.
+
+## Native activation explains different opportunities; singleton v2 validates
+
+Four frozen native diagnostic captures (manifest 18bbcf9c, 69 pins) pass all own
+full report oracles: 15,308 ordered entries and 684 entries for the six selected
+Llama descriptions. Independent raw replay also accepts all counter equations,
+identity/overflow checks and within-strategy conservation. These runs are untimed
+evidence; the earlier separate timing confirmation remains the performance source.
+
+Across those six descriptions PureSize attempts the helper 585,858 times, with
+242,237 singleton cover observations. It avoids only 8,092 of 3,013,364 requested
+rows (0.269%); all 2,534 applications yield empty covers. Neither grow-FE lhs rule
+nor batch-collapse applies the filter at all. Live-MinCover attempts it 140,308
+times and avoids 2,295,078 of 8,179,542 requested rows (28.059%) over 5,248
+applications. All successful frame totals remain unchanged within each strategy.
+For grow-FE-B-lhs-Mul, MinCover's projected scans fall from 1,169,004 to 228,831;
+PureSize's 538,189 scans stay unchanged. This establishes the difference in saved
+work; it does not measure helper time or prove that singleton calls explain the
+regression. Source and reason summaries cannot be paired per call without further
+bounds. Artifacts: native-retained-activation-diagnostics/{audit.json,
+independent-raw-audit.json,independent-acceptance-note.txt}.
+
+The separate cached-singleton v2 build (manifest 471630bc) passes 176 core tests
+in each of off/control/select, 19 bridge tests, and fmt. Binary 102a9e03 is frozen
+from the actual Cargo artifact. Both root and independent review verify exact
+source/index/status restoration. Production plan/query bytes match the original
+prototype; only the documented final fixture case differs. The six with-plan
+Llama/Qwen captures (manifest 9ab56fa1, 58 pins) now pass their collector's 23,400
+full ordered-result checks; independent raw and plan interpretation follow before
+the root11 plus math12 three-mode timing screen.
