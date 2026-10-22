@@ -1334,3 +1334,72 @@ reprocess_constraints can construct column indexes before db.run_rule_set.
 A planned diagnostic will time cached-plan construction and this header
 phase separately. The absence of ordinary join-index work from the wall
 residual does not imply that all index construction is inside query timing.
+
+
+## Broad PK-domain census and first-use planning cost
+
+`pk-domain-root11-pilot` completes all 33 attempts and preserves all 210,354
+ordered entries, changed flags, and final sizes. There is no catastrophic
+regression, but one-sample controls vary substantially (including Hard128
+and eggcc), so small whole-workload changes do not establish performance.
+The compact `pk-domain-selection` census reuses frozen inputs/binary and
+associates the synchronous selected-cover trace with its immediately preceding
+rule-description trace. All eleven untimed reports reproduce the pilot's full
+ordered counts/changed flags. Only the three Ramp rules in each Hardboiled
+case and Gamma/Theta purity rules in eggcc accept groups. Every model, Luminal,
+Python, and CYK selects none; their pilot timing changes are not attributed
+to fused execution.
+
+Jointly changing the three Ramp rules removes the earlier unchanged
+ramp-pair penalty: ramp-pair saves 0.074/0.282 ms, and the three targets together
+save 0.227/0.658 ms (6.34%/9.11%) versus the waiting control. Divisible-lanes
+still costs 0.065/0.198 ms more. The first two rules close a relational triangle
+because the constructor children share a lane. Divisible-lanes is relationally
+a path; its lane condition exists only in a primitive. The eggcc purity rules
+are independent unary-probe stars. The next ablation will require a genuine
+child-to-child relational edge, with cheap necessary key-arity checks before
+candidate analysis. This is a hypothesis, not a cost guarantee.
+
+`planning-phase-trace` is a temporary bridge-only instrument, never promoted.
+The frozen split diagnostic passes all 175 core tests in three configurations
+plus 19 bridge tests. Five models, GJ-wait/split-wait, three runs plus one
+warmup give 40 reports and 181,440 exact ordered entries, changed flags,
+aggregate counts, and final sizes. Timings are explicitly diagnostic.
+Each report iteration is aligned to its trace using exact search/apply ns,
+merge ns, and executed-plan count in order. Reported schedules compile exactly
+491 cached plans in every model/treatment. Extra traces cover 1,245-2,692
+one-shot commands/actions absent from RunReport; those are accounted separately.
+No ruleset-based rebuild calls occur, so nested rebuild timers do not double
+count these native rebuilds.
+
+Split adds first-use cached compilation 0.675/0.617/0.569/0.509/0.593 ms in
+Llama/paged/Qwen/Qwen3/Whisper. All fifteen paired compile differences are
+positive. Schedule header/preparation differences are
+-0.024/-0.015/-0.139/+0.014/+0.012 ms; unreported executor differences
++0.006/+0.034/+0.012/+0.036/-0.012 ms. The repeatable outside-query penalty
+is total first-use compilation, not repeated constant-header indexes or
+hidden join-index setup. This does not isolate the admission helper alone.
+A minimal follow-up skips atoms with fewer than two physical keys before
+looking for a two-variable group, preserving eligibility and ranking.
+
+
+`anchored-min-arity` tests that necessary check without changing candidate
+eligibility, ranking, or state. Its frozen diagnostic passes all 175 core
+tests in three configurations plus 19 bridge tests. The three-control,
+three-repetition/one-warmup phase comparison completes all 60 reports and
+preserves all 272,160 ordered entries, changed flags, counts, sizes, hashes,
+and control environments. Each reported schedule still compiles 491 plans.
+Arity-minus-old compile means are +0.0170/-0.0417/-0.0393/+0.0409/+0.0307 ms
+across the five models; only seven of fifteen pairs improve, pooled mean
++0.00152 ms and paired median +0.02133 ms. Both split variants retain about
++0.55 ms compilation versus matched GJ, every pair positive. The check is
+logically harmless but demonstrates no cost reduction. No production change
+or wall-time gain is claimed from this diagnostic.
+
+The PK selection audit accounts for 70,118 exact entries in its eleven
+traces. Eggcc Gamma purity costs 0.045072 -> 0.073164 ms over 29 zero-output
+entries; Theta purity changes 0.037997 -> 0.037196 ms over 36 zero-output
+entries. Their combined +0.027291 ms explains little of the pilot's unrelated
+whole-query +1.699485 ms. Both are stars without a relational edge between
+child probes and will be excluded by the triangle ablation. Expected admitted
+rules are then only equal-lanes and ramp-pair in each Hardboiled input.
