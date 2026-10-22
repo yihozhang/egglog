@@ -3667,3 +3667,71 @@ not an implemented gate or a claimed explanation of timing.
 Artifacts: native-refinement-max/{audit.json,independent-raw-audit.json,
 independent-acceptance-note.txt}; fused-refinement-max-performance/
 independent-loss-attribution.{json,txt}.
+
+
+## Fixed-candidate relational-probe veto: neutral broad screen
+
+Patch 6fef6010 adds a literal nonempty-relational-probe requirement after the
+singleton candidate is fixed and before alternate headers/state/stages are
+constructed. A retained variable must occur on another real atom; repeated
+columns within the cover and dummy-only incidences do not qualify. One shared
+variable is sufficient, so Whisper LessThan/Op remains eligible. A veto retains
+GJ and never searches for a replacement. The forced-policy test checks a private
+RHS/repeated-key candidate, later eligible candidate without fallthrough, dummy
+exclusion, and exact admitted stage/constraint equality. Only plan.rs changes.
+
+Build manifest 4011169f applies the exact twelve-patch max-refinement base plus
+this delta. All 179 core tests pass in off/select-max/select-max-gate, all 19
+bridge tests and fmt pass. Actual Cargo binary f8110bed and exact original
+source/index/status restoration pass independent review. No prototype source
+is retained in the main worktree.
+
+Frozen timing plan 27f1f391 pins 243 files. Three same-binary treatments compare
+GJ(off,max0,gate0), ungated singleton(select,max1,gate0), and gated singleton
+(select,max1,gate1). The marginal comparison changes only the compile veto;
+global max credit remains rejected by the separate native experiment. Three
+paired repetitions plus two warmups, CPU24/j1/no-decomp, produce 165 reports
+and 1,051,770 ordered entries. Independent own/cross raw-result, provenance
+and every paired statistic check passes; all eleven cases are accepted.
+
+| Case | Gated/ungated query | Gated/ungated wall | Gated/GJ query | Gated/GJ wall |
+| --- | ---: | ---: | ---: | ---: |
+| hardboiled_conv1d_32 | +0.253% | +0.562% | -0.056% | +0.694% |
+| hardboiled_conv1d_128 | -1.116% | -0.696% | +0.304% | +0.322% |
+| luminal-llama | +0.898% | +2.369% | +1.485% | +1.752% |
+| python_array_optimize | -0.189% | +0.087% | +0.726% | -0.349% |
+| cykjson | -0.636% | +0.524% | -0.079% | +0.517% |
+| eggcc-extraction | -0.286% | -0.235% | -0.184% | +0.060% |
+| llama | +0.047% | +0.132% | -1.965% | +0.920% |
+| paged_llama | +0.269% | +0.165% | +0.051% | +1.023% |
+| qwen | +0.340% | -0.876% | -1.103% | +0.806% |
+| qwen3_moe | -0.228% | +0.532% | -1.814% | +0.900% |
+| whisper | +0.825% | +0.262% | +0.918% | +0.870% |
+
+The summed case means are essentially neutral against ungated: query -0.0905%
+and wall +0.0666%. Against GJ they remain query +0.1613%, wall +0.3695%.
+Hard128 improves marginal query 1.116% and wall 0.696%, all three pairs and
+both orders; ConvolutionShuffle+ saves 3.596ms, versus 3.448ms whole-query
+saving. This is not attributed to its own selected plan or a component timer.
+Llama/Qwen/Qwen3 retain all-three query gains against GJ but all-three wall
+losses. Whisper net query/wall regress in all three pairs; its marginal query
+mean has an execution-order sign flip. This screen supports neither broad
+promotion nor a further threshold variant. Math and external81 are not run.
+
+The source/family review narrows the possible mechanism. A vetoed isolated
+cover already has its private/RHS GJ scans merged by fuse_single_scans. Cover
+scans are excluded from indexed-access registration; all other atoms retain
+exactly the same ordered (atom,columns,constraints) access signatures. Because
+original GJ is registered first, these scan-only alternatives add NO unique
+family identities. The gate saves duplicate compilation/registration, family
+vectors and retained program arrays; it cannot shrink shared family counts in
+this scope. A previously selected scan-only alternate can still have different
+logical placement and runtime cadence. No general execution-equivalence claim
+is made. Earlier observations about unique families from unused FILTERED
+alternates remain a separate, unquantified possibility.
+
+Artifacts: singleton-relational-probe-gate-build/{manifest.json,
+independent-build-audit.json}; singleton-relational-probe-performance/
+{audit-root11.json,independent-root11-raw-audit.json,
+independent-root11-acceptance-note.txt}; singleton-scan-only-family-assessment/
+{assessment.txt,evidence.json}.
