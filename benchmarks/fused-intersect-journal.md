@@ -4195,3 +4195,85 @@ causal test, but restricting this existing shape does not introduce a new
 mechanism. No additional trial or threshold is proposed from either check.
 Artifacts: list-tail-index-elision-overlap-assessment.txt;
 runtime-two-shared-key-overlap-assessment.txt (source and prior-screen hashes).
+
+
+## Exact legacy constant-key target captured, then rejected as a net GJ plan
+
+The separate tests/luminal-llama.egg captures now exercise the intended old gap.
+The modern clean-control reference has the exact current source4373641f/input
+4fe24d4e and no includes, with 1,155 entries and 225 matches in each intended
+rule. Frozen capture runnerbf7f5195 has 58 pins. Independent acceptance covers
+three reports / 3,465 entries, exact own/cross counts/flags/sizes, and identical
+helperOFF/ON full plans. All 155 changed programs also match the corresponding
+archived private-reversal programs exactly; there is no observed cross-era
+cover-choice difference. Reported plans do not expose numeric constant n or
+compile-time size estimates, so those are not inferred from generated names.
+
+Mul->CubeMul has 85 entries, four nth covers, 19->15 stages and 225 matches
+(83 zero entries plus two positive). Sum->TileSum has 49 entries, three covers,
+13->10 stages and 225 matches (47 zero plus two positive). Named cube mul has
+nine entries, one cover, 7->6 stages and 225 matches (seven zero plus two positive).
+The other CubeMul/TileSum->TileMatmul orientation has twelve entries, one cover,
+9->8 stages and zero matches. Total: 508 covers, 149 zero entries and six positive
+entries. Bound-variable multisets match GJ, and every surviving suffix instruction
+is an exact ordered GJ subsequence. Eligibility is established; helper activation
+and physical execution order are still unobserved by these captures.
+
+The same e9e8e92e binary then runs the two-case, three-arm timing pilot. Frozen
+plan90eb779a pins 108 artifacts. There are two warmup triples and three timed
+triples per input, thirty processes total, CPU24/j1/--no-decomp/20s/32GiB. Each
+arm occupies every timed position once. Every comparison has both orders, split
+2/1 per case; the second case mirrors the imbalance, without pooling cases to
+claim exact within-case balance. All thirty reports / 74,730 entries pass their
+modern and fresh own-mode references plus complete cross-mode vectors, flags
+and final sizes. Independent audit recomputes 3,768 statistic blocks. No failed
+or excluded sample. Timings come only from these uninstrumented time-only runs.
+
+| Input | GJ query | Planner query | Planner+helper query | Helper/planner query | Helper/GJ query | Helper/GJ process wall |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Root Llama | 36.600ms | 36.430ms | 36.582ms | +0.416% | -0.050% | -0.852% |
+| Legacy Luminal Llama | 6.186ms | 30.656ms | 20.608ms | -32.777% | +233.147% | +15.157% |
+
+GJ has DEFER0; both planner arms have DEFER1, LIVE0/BRIDGE0. Planner/GJ includes
+scheduling, whereas helper/planner isolates the helper in an identical program.
+Legacy planner alone loses 395.585% query and 23.987% process wall versus GJ.
+The helper improves planner query and wall in all three pairs and both orders
+(-32.777%/-7.122%), but the resulting plan still loses both net GJ metrics in
+every pair and both orders. This is a real partial improvement, not a net win.
+Root net query is mixed and flips sign by order; its median is +0.412%. Root
+helper/planner query and wall lose all three pairs, but 97.74% of its 0.151591ms
+query increase is in unchanged programs. Changed programs add only 0.003433ms;
+there is no basis to assign the whole increase to the helper. Changed root rule
+families remain all zero-output and add 0.0391ms versus GJ.
+
+Legacy helper/planner saves 10.048106ms query. Intended Mul/Sum save 9.973605ms
+(99.26%): Mul5.371ms and Sum4.603ms. Their zero-output entries save 9.656722ms
+(96.10% of whole-query savings); all four positive entries also improve in every
+pair/both orders, saving 0.316884ms. This is not solely an empty-result benefit.
+
+The net helper/GJ query loss remains 14.422019ms. Intended Mul/Sum contribute
+14.381662ms (99.72%): Mul+10.381ms and Sum+4.001ms, with zero entries accounting
+for 13.926363ms. Their positive-output costs still increase 85.0%/114.7% versus
+GJ, losing every pair/both orders. All four changed families contribute 14.409682ms;
+unchanged programs add only 0.012337ms. The residual problem is in the intended
+executed rules, overwhelmingly failed entries, rather than an unrelated-rule
+offset. The planner is not promoted and no broader benchmark screen is justified
+by this net loss.
+
+The remaining discriminating question is actual helper activation: do the costly
+entries fall back because no supported smaller driver exists, or continue doing
+substantial work after successful PK narrowing? A bounded additive observer is
+being prepared for the same full legacy planner context, selecting only Mul/Sum
+for observation. Four helperOFF/ON x observerOFF/ON captures will preserve plans
+and outputs. Observe existing PK attempts/hits/current-membership and selected/
+scanned/projected rows; no new lookups, clocks, build census or key samples. Do
+not change planner scope with its rule selector merely to obtain attribution.
+
+Artifacts: constant-key-cover-luminal-plans-v1/{audit.json,
+independent-raw-audit.json,independent-acceptance-note.txt,
+static-plan-interpretation.json,journal-ready-plan-interpretation.txt};
+constant-key-cover-performance-pilot-prepared/plan.json;
+constant-key-cover-performance-pilot/{audit-screen.json,audit-screen.txt,
+independent-raw-audit.json,independent-rule-interpretation.json,
+independent-rule-interpretation.txt}; interpret-constant-key-cover-pilot.py;
+runtime-constant-key-activation-observability.txt (design only).
