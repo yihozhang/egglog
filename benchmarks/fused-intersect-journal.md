@@ -3191,3 +3191,30 @@ control will compile/register both programs to expose that overhead. No recursiv
 stage conversion or executor dispatch change is planned. Separately, a five-panel
 native MinCover/PureSize screen is being prepared for the retained-root prefilter;
 its local PK gains alone do not establish gains under whole-native planning.
+
+The Python recovery completes, and the combined audit accepts all twelve cases
+and 70,470 full ordered entries. Independent rechecking verifies all 157 pins and
+reparses all 971,632 metadata lines byte-exact to the compact records/dictionaries:
+3,238 compilation records, 968,394 focus records and 12,677 complete singleton
+opportunities. Of the latter, 6,591 have only a singleton header and 6,086 have
+both singleton table and header. Another 51,038 skipped focuses have a singleton
+constituent but correctly do not count as selected. The original Python timeout
+is still preserved and excluded; no diagnostic time is used.
+
+Final coverage confirms zero selected beta/cublaslt focuses across all 56 such
+descriptions in each of the five current model inputs. This is an observation
+on these inputs, not a structural future-data exclusion. PagedLlama also selects
+58 complete Add4 focuses per state, and Qwen3MoE 67; Whisper selects none.
+Python supplies 8,060 opportunities across 226 descriptions, including 5,869
+header-only witnesses. Many selected candidates were empty at compilation.
+CYK's six opportunities all use headers of initially empty P/B tables. The
+prototype must handle growth from empty to singleton to many rows without
+depending on declaration-time cardinality.
+
+Alternative compilation is much broader than execution opportunity: each model
+has 423 eligible compilation records out of 449, while only 31--39 descriptions
+ever select. This makes the dual-registration forced-GJ control essential.
+Artifacts: singleton-cover-census-recovered/{audit.json,independent-raw-audit.json,
+interpretation.json,interpretation.txt}; raw first captures and timeout remain in
+singleton-cover-census-diagnostics, and compact chronological records are under
+singleton-cover-census-recovered/parsed. No alternate has yet been measured.
