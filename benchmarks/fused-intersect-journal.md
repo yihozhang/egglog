@@ -1403,3 +1403,51 @@ entries. Their combined +0.027291 ms explains little of the pilot's unrelated
 whole-query +1.699485 ms. Both are stars without a relational edge between
 child probes and will be excluded by the triangle ablation. Expected admitted
 rules are then only equal-lanes and ramp-pair in each Hardboiled input.
+
+
+## Triangle admission exposes cross-rule costs
+
+PK-domain triangle confirmation completes 36 timing/warmup reports (97,056
+ordered entries) and six plan diagnostics (16,176 entries), with exact counts,
+changed flags and final sizes. The separate root11 census adds 70,118 exact
+entries and admits only equal-lanes plus ramp-pair in each Hard size. Same
+frozen binary, five timed/one warmup, CPU24, -j1 and --no-decomp; captured input,
+binary and environment provenance is exact. V2's accepted plans equal v1's;
+divisible and all other unselected plans equal GJ.
+
+V2 retains equal-lanes gains of 17.15%/21.31% and ramp-pair gains of
+8.69%/13.80% on Hard32/128, each all five pairs in both order groups. But
+unchanged-plan divisible slows 16.20%/16.86% versus GJ, also every pair and
+both orders, versus only 4.40%/3.42% loss when v1 fuses all three. V2's two
+selected rules save .284/.949ms; divisible returns .136/.374ms and remaining
+rules .212/.466ms. Whole query +.117%/-.036% and wall -.005%/-.031% remain
+neutral. Rejecting a plan based on its isolated/original-context cost does
+not compose into a better workload policy here.
+
+Divisible loss persists in 25/26 and 26/26 positive-output entry means;
+25 entries per size lose in all five pairs. Initial invocation contributes
+only about1% of the penalty. Grouped Bop cover scans remove Bop[1]/[2] indexed
+requests while retaining child-output, operator and lane requests. Lazy
+catalog refresh and per-invocation packed descendants can be shared across
+rules, so shifted index work is a testable explanation; existing reports do
+not establish it or any row-order/cache cause. The next bounded diagnostic
+counts rows/time only inside actual shared catalog refresh closures, scoped
+to serial rules. Packed residual builds remain outside that diagnostic.
+No production gate or holdout-wide performance claim follows from this run.
+
+The frozen v2 build passes all 174 core tests in four configurations (off,
+v1, triangle, and combined diagnostics) plus formatting. Its early physical
+and distinct-key arity exits are necessary conditions shared by both timed
+v1/v2 labels. The new-binary triangle0/triangle1 comparison therefore isolates
+the topology gate and its changed selection, not those early exits. The
+original user patch is preserved exactly after restoring source.
+
+A separate archive review rejects speculative extension of leaf batching to
+arbitrary factor counts for now. No earlier implementation of a generic
+prefix walker feeding the final two factors to the existing bulk helper was
+found. However, all 352 saved math12 plans permit at most two multirow leaf
+factors: apparent third leaves project only outputs after their complete
+primary key is fixed. This is a structural bound, not runtime telemetry.
+Gemma/Whisper runtime census has zero 3+ factor calls; Hard128 has just 118
+calls and 2,268 rows (1.8% of emitted rows), with no isolated cost measurement.
+There is no measured material opportunity that justifies adding the path.
