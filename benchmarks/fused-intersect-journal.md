@@ -1777,3 +1777,50 @@ earlier general runtime screens predate this PK policy. Verify that archive
 distinction before repeating a probe-order experiment. Offline artifacts:
 offline-root-size-policy.json/.txt and offline-tiny-root-policy-v1/v2.json/.txt
 under ramp-dvo-diagnostics.
+
+
+## Ordering existing fused probers has a repeatable local signal
+
+Archive review found EGGLOG_FUSED_ORDER_PROBES in older bundled runtime
+experiments, but no standalone comparison on the conditional PK-domain path.
+The new minimal patch stably sorts the already-built descriptors by existing
+Prober::len(), retaining their original ordinals. It changes only filtered
+FusedIntersect probe order; index construction, cover traversal, binding
+writes, rollback, and accepted-frame order remain unchanged. It adds no
+empty-index shortcut, deferred writes, or planner change. Later lazy descents
+can naturally be avoided when an earlier probe rejects a row.
+
+Formatting and all 174 core tests pass with flags off, ordering on under GJ,
+and ordering on under PK. The frozen binary is
+ceccc2a1b44712c2067ca74894cd998aaa4b85f70c06717653bf3f480b751d5d.
+Temporary source is restored exactly. Separate GJ/v1 panels use three timed
+runs and one warmup on Hard32, Hard128, resize, and Whisper, CPU24/j1/no-decomp.
+All 64 reports and 228,592 ordered entries pass the full within-panel oracle
+and provenance audit. Resize's known cross-planner differences remain explicit.
+
+All 27 native Ramp target comparisons improve (three rules, three workloads,
+three timed pairs), with both execution-order groups agreeing. Combined trio
+time falls 9.15%/9.36%/10.02% on Hard32/Hard128/resize, saving
+0.246/0.624/1.320 ms. Native whole-query changes are -0.58%/-0.62%/-2.40%;
+wall changes +0.66%/-0.49%/-0.76%. GJ Hard32's apparent 8.3% query benefit is
+dominated by one slow off sample (69.3 ms versus later 53.7/53.8 ms), with
+merge, rebuild and wall also elevated; it is not an ordering speedup claim.
+Whisper native query rises 0.86% in all three pairs, with the first pair
+accounting for much of it; matched GJ is neutral. Repeat before concluding.
+
+Late resize corroborates the predicted failed-probe savings using untraced
+samples: iteration 68/ordinal 1 falls 82.692 -> 37.210 microseconds, and
+71/ordinal 1 falls 88.321 -> 41.527, all three pairs. Their ordinal-0 mirrors,
+where the small left input is already probed first, change only about one
+microsecond. The two highlighted entries contribute 92.277 microseconds of
+the Ramp/Ramp target's 352.055-microsecond saving (5.615684 -> 5.263629 ms,
+6.27%, all pairs and both order groups). GJ still takes roughly 2.03/4.50
+microseconds in those late entries. Ordering reduces failed-path work but
+cannot recover the scalar operand access path removed by fusion.
+
+This screen merits confirmation, not promotion. Next interleave matched GJ,
+PK-off and PK-on for five timed runs plus two warmups on these four inputs,
+then assess native MinCover/PureSize behavior if the signal holds. Artifacts:
+pk-probe-order-panels/independent-probe-order-audit.json/.txt and
+ramp-dvo-diagnostics/runtime-interpretation.txt. No production sort is retained
+yet, and traced runtimes are not used in any performance claim above.
