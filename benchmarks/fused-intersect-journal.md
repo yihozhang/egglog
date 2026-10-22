@@ -3218,3 +3218,45 @@ Artifacts: singleton-cover-census-recovered/{audit.json,independent-raw-audit.js
 interpretation.json,interpretation.txt}; raw first captures and timeout remain in
 singleton-cover-census-diagnostics, and compact chronological records are under
 singleton-cover-census-recovered/parsed. No alternate has yet been measured.
+
+## Retained-root prefilter: native MinCover gain, PureSize regression confirmed
+
+The five-panel screen freezes plan a625b426 (65 pins), using unchanged timing
+binary 19ee7ebe. Hard32 PureSize, Llama PureSize/live-MinCover and eggcc
+PureSize/live-MinCover each receive three timed pairs plus two warmups. Original
+eager probe order and archived native flags remain fixed; PREFILTER0/1 is the
+only within-panel difference. All 50 reports and 208,490 ordered entries pass
+both own native references and current off/on fingerprints, independently checked.
+No historical timing or native-versus-GJ timing comparison is made.
+
+| Panel | Query change | Report-backed wall change | Faster query pairs |
+| --- | ---: | ---: | ---: |
+| Hard32 PureSize | -1.392% | -1.050% | 3/3 |
+| Llama PureSize | +5.149% | +3.565% | 0/3 |
+| Llama live-MinCover | -18.692% | -12.520% | 3/3 |
+| eggcc PureSize | -0.502% | -0.232% | 2/3 |
+| eggcc live-MinCover | -1.682% | -0.691% | 3/3 |
+
+A fresh Llama-only confirmation freezes c4716a8b (70 pins), five timed pairs
+plus two warmups per strategy, preserving the pilot separately. All 28 reports
+and 107,156 ordered entries independently match historical own-mode and exact
+same-binary pilot references. PureSize regresses query +4.691% and wall +3.613%
+in every pair; live-MinCover improves query -18.132% and wall -12.510% in every
+pair. Both execution-order groups agree in direction. This is a substantial
+within-native gain with a repeatable adverse case, not grounds for promotion.
+
+Pilot attribution locates PureSize's +26.483ms: +21.908ms (82.7%) is in zero-output
+entries, with 255 rules slower and 205 slower in every pair. Two GEMM descriptions
+add 8.651ms and batch-collapse merge A-contiguous B-broadcast adds 2.062ms.
+Live-MinCover saves 87.888ms, including 48.301ms in nine grow-FE rules and 14.244ms
+in direct-sigmoid-scaled-marker. The same grow-FE-B-lhs-Mul rule goes from
+22.327 to 5.343ms under MinCover (-76.1%), but from 25.108 to 26.483ms under
+PureSize. These timings identify a useful same-rule plan contrast; they do not
+establish activation or the cause of failed-prefilter overhead.
+
+A separate bounded diagnostic is being prepared for six exact Llama gain/loss
+descriptions. It will reuse the existing activation counters, distinguish observed
+singleton cover sources, and count only operations already performed by the
+retention setup. No additional index lookup, policy or timing claim is introduced.
+Artifacts: native-retained-prefilter{,-confirm}/{audit.json,independent-raw-audit.json};
+native-retained-prefilter/interpretation.json. Original user source remains exact.
