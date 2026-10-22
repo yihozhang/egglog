@@ -1493,3 +1493,102 @@ also match. This confirms avoiding the contains-side index while repeating
 ICons probes per contains row. It does not justify blanket admission: the
 archived Whisper second delta still loses 38.59 -> 62.36 us despite its
 aggregate target win. No absent-key cache or new selection rule is implemented.
+
+
+## PK fusion does not generalize to resize
+
+A bounded denoise/rec_filter/resize pilot exercises graph shapes beyond the
+two convolution inputs. Its strict count oracle fails across GJ/native plans:
+16/14/16 entry differences respectively, involving two Ramp and two type-union
+rules (rec_filter includes six missing zero-match entries). All 101 final table
+sizes and per-iteration changed flags agree. This is not classified as the
+user's known eggcc nondeterminism. A separate untimed oracle appends every
+existing commented output-placeholder extraction: 81/83/40 roots. All 816
+extractions across four controls have identical costs and expression strings,
+and every same-treatment count vector agrees with the pilot. This establishes
+agreement for all declared output roots, not full-egraph equivalence.
+
+PK-domain held-out repeat: three timed + two warmup runs per treatment, four same-binary controls, CPU24/j1/no-decomp
+
+All60 engine runs succeeded. Independent raw audit covered174,020 ordered entries and verified frozen binary f52a1034007e1d31a887eb39c4571d61a39bfcfe0affae1dad72b60a1a66dc9a, exact source-plus-print suffixes, matching inputs and environments. Every run matches its own treatment's original pilot count vector, changed flags, aggregate counts, updated/can_stop and final sizes. GJ and matched GJ-wait agree exactly; v1 and v2 agree exactly. Both native treatments retain the same16/14/16 GJ entry differences on denoise/rec_filter/resize, respectively; these are not hidden or described as a strict cross-strategy count pass. The separate untimed oracle already showed identical chosen expressions and costs for all204 program output placeholders across all4 treatments, but it does not establish full-egraph equivalence. No extraction commands were timed.
+
+Mean changes versus matched GJ-wait (v1 / v2):
+  denoise: query +0.454% / +0.522%; wall +0.216% / +0.013%.
+  rec_filter: query -0.116% / +0.354%; wall -1.280% / -1.259%.
+  resize: query +2.589% / +2.528%; wall +1.469% / +0.750%.
+
+Denoise's earlier apparent20% benefit disappears after warmups. The first two Ramp rules still save0.466/0.418ms, but divisible-lanes adds0.204/0.355ms and other rules offset the remaining gain. Both native whole-query times are slower in all three timed pairs and both order groups, although the effect is small. Rec_filter is approximately neutral at the whole-query level; the apparent wall gain is driven by one257.2ms GJ-wait sample versus247.1/248.9ms for its other samples. Both candidates beat that control only1/3 wall pairs, with order-group reversal. Ramp/Ramp loses5.31%/4.70% with its complete count vector unchanged; divisible-lanes loses1.05%/17.52% with the documented native count changes.
+
+Resize is the consistent adverse transfer: both native candidates lose in all three query and wall pairs, in both execution-order groups. All three Ramp rules are slower. Ramp/Ramp, whose per-entry counts are exact, loses16.85%/16.66% (0.803/0.794ms). The complete trio adds1.314/1.450ms, accounting for81.0%/91.5% of total query penalties1.622/1.584ms. Thus the selected-rule timing change, not only unrelated wall noise, explains most of the regression. We have no held-out with-plan report proving that no additional rule plans changed, so this is timing attribution to named measured rules, not exclusive causal attribution to a single planner change.
+
+v2 remains weaker than v1 across the three-Ramp total: +1.99% denoise (3/3), +4.68% rec_filter (3/3), +1.05% resize (2/3). The triangle criterion neither improves overall performance nor ensures that retained Ramp/Ramp benefits transfer between graph shapes. These small samples do not estimate narrow confidence intervals, but the repeated held-out resize loss and absent overall wins provide no basis for promotion or a costly broad external confirmation. Further work should require a concrete explanation of the adverse transfer, rather than another workload-specific topology filter.
+
+Detailed paired samples, both order groups, per-rule timings and explicit count differences: independent-heldout-audit.json / .txt. Three timed rounds give2 control-first and1 candidate-first observation for each pair.
+
+
+## Shared packed-node construction explains the ownership shift
+
+The frozen temporary packed diagnostic passes all 174 core tests both off
+and with catalog/packed/triangle flags, plus formatting. It records actual
+scalar build_packed_node calls inside existing factory/cache initialization
+boundaries. No additional index lookup, warming, probe counting, or publication
+is introduced. Source is restored exactly; no diagnostic code is promoted.
+
+The packed-build diagnostic confirms a recurring transfer of shared scalar
+construction work. All six reports/16,176 ordered entries retain exact matches,
+changed flags, aggregates and final sizes against their untraced matched
+references; binary/input hashes and environments pass. Report alignment covers
+61 nonempty iterations per run, with 17 empty iterations and 39/63 auxiliary
+invocations kept separate. No auxiliary scalar builds occur.
+
+GJ equal-lanes builds Bop[1]/Bop[2]; v1 and v2 equal-lanes build neither. GJ and
+v1 divisible-lanes build no scalar packed nodes, but v2's unchanged divisible
+GJ plan now constructs these operands. All 34 (iteration, ordinal) signatures
+match GJ equal-lanes versus v2 divisible-lanes exactly after omitting measured
+nanoseconds: physical column, catalog_child/packed_child route, access/family/
+slot metadata, dynamic-five-family shared shape, build count, input/retained
+rows, and distinct keys. There are 28 nonempty transfer entries on Hard32 and
+29 on Hard128, from iteration 17 through 69. This is recurring work ownership,
+not just first-invocation cost. The trace does not record row IDs/pointers, so
+it establishes matching measured construction work, not pointer identity.
+
+Transferred Bop operand work (builds / input rows / distinct keys):
+  Hard32:  [1] 76 /4543 /2313;   [2] 1346 /5182 /3896.
+  Hard128: [1] 62 /11783 /5840;  [2] 3652 /12119 /9648.
+Input and retained rows are equal in all these operand events. All events use
+shared table-family slots with Dynamic{families:5}; most are packed descendants,
+with a small catalog-continuation portion. Divisible additionally builds two
+one-row Bop[0] nodes in each size. Its clocked scalar construction is
+0.131037ms/0.308080ms in these diagnostics. These values are NOT an untraced
+performance estimate or proof of the fraction of the measured 16.2%/16.9%
+penalty: clocks/aggregation perturb execution and slot allocation, cache hits,
+wait/publication, tuple interiors and probing are outside the timer.
+
+The shared catalog attribution remains exactly unchanged by owner, entry,
+column, refresh count and physical row span. Thus the previous negative
+catalog finding and this positive packed finding concern different layers.
+
+Cross-rule effects extend beyond the three Ramp rules. Relative to v1, v2's
+new divisible builds reduce construction charged to four later unchanged
+rules: two vector-reduction/matmul patterns plus IntImm Add and Sub rewrites.
+Those four save 31/34 scalar builds and 4251/11567 input rows at32/128, offsetting
+part of divisible's 1424/3716 builds and 9727/23904 rows. Net v2 versus v1 is
++1393/+3682 scalar builds and+5476/+12337 input rows. Across the whole reported
+run, GJ/v1/v2 build counts are 29821/29010/30403 at32 and 92031/89534/93216 at128;
+input rows 321901/312595/318071 and 940848/912171/924508. V2 scans fewer packed
+input rows than GJ but constructs more tiny nodes. These are work counters,
+not an independent claim of speed.
+
+Interpretation: a topology veto judged by isolated rule cost ignores reuse
+between rules. Fusing earlier producers removes shared index construction
+that a later unchanged consumer formerly reused, relocating its cost into the
+consumer's timer. The measured ownership transfer now supports this concrete
+mechanism; it does not establish that every whole-query timing difference has
+that cause. Keep the whole-query neutral result and do not promote the v2
+triangle veto from local target wins. If another bounded experiment is useful,
+the missing divisible-only cell in the existing four-way none/two/all-three
+interaction design is sufficient; no new cache or planner machinery is needed.
+
+Artifacts: independent-packed-audit.json/.txt provides the complete report and
+per-rule/entry audit. packed-transfer-attribution.json/.txt records the exact
+34-entry correspondence, source/family signatures and other owner changes.
