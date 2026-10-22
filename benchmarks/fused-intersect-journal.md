@@ -2796,3 +2796,12 @@ default GJ also needs an overhead screen. Parallel top-partition fallback avoids
 workers partitioning different candidate universes as indexes become published.
 The prototype is independent of lazy acquisition and diagnostics, and requires
 an output/order oracle before measurement. No prefilter policy is retained yet.
+
+
+Local lazy provenance clarification: the frozen 62-pin bundle pins the model
+input and its original source, but did not separately pin the shared transitive
+include tests/luminal-header.egg. The exact output oracles and recorded worktree
+restoration evidence still pass; they are not a substitute for a historical
+include hash. Frozen inputs are preserved rather than amended retrospectively.
+The next native bundle explicitly pins the shared include and checks the chosen
+inputs' include closure before execution.
