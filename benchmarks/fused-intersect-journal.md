@@ -62,3 +62,51 @@ Runtime alternatives prepared independently: singleton residual cover selection
 (same logical stage, other prepared slots retained; no top-level partition),
 deferred cover binding writes, probe ordering by key count, and empty-filter
 early exit. Temporary switches will be removed from any retained implementation.
+
+## Active fusion, runtime experiments, and replanning
+
+- Dynamic singleton stage conversion: **rejected**. Three paired runs showed
+  hardboiled_128 +40.9%, whisper +60.5%, paged_llama +15.8%. Constructing a
+  synthetic owned stage per recursive call costs more than the tiny leader
+  index it avoids. Removed from working implementation; raw data
+  `/tmp/fused-lab/runtime-singleton.json` and prototype patch retained in /tmp.
+- Relaxed static ratio4: **rejected**. Hardboiled_128 +481.7%, llama +532.2%;
+  stopped repeated whisper runs after the regression was established. Binding
+  dead timestamp variables was subsequently removed and probe key ordinals
+  remapped. All surviving candidate covers require the full primary key in
+  their live projection or constant constraints, to avoid duplicate bindings.
+- Exposed report bug: a fused probe report used cover-relative key ordinals as
+  target physical columns, sometimes panicking. Fixed it to use the target
+  scan columns. The forced fused test now checks reversed physical columns.
+- Per-focus replanning: always refresh and factor-four refresh both regressed.
+  With factor four, hardboiled_128 +64%, llama 0.142s -> 4.355s, paged_llama
+  0.160s -> 3.290s. Reducing planning frequency did not fix the main cost.
+  See `/tmp/fused-lab/refresh-{1,4}.json` (qwen hit the five-second watchdog).
+- Distinct-key gates, >=2 shared-variable gates, and whole-query terminal
+  covers were screened with deferred binding writes, sorted probes, primary
+  key probes, tiny tuple residuals, and terminal factorization enabled.
+  None has demonstrated a repeatable local win. One-pass cold-start numbers
+  are screening only, not confirmation; notably an apparent hardboiled gain
+  in the first workload pair disappears after warmup. Raw data:
+  `/tmp/fused-lab/combined-*.json`.
+
+Untimed llama plan reports explain the regression more precisely. The baseline
+has 45,836 Intersect occurrences and 15,056 scan-only FusedIntersect occurrences;
+refreshed ratio-distinct has 42,538, 13,277, and 2,061 fused joins respectively.
+All per-rule match counts agree. Four cublaslt beta rules dominate the extra
+time: roughly 0.2ms each becomes 0.4–0.9s. Fusing all shared variables of ICons
+and Add commits to a scan before other edges can prune it. Thus active fusion
+and correctness alone do not establish a good plan.
+
+Focused forced-plan tests pass at one and four workers, including reversed
+tuple columns, duplicate shared-key payloads, stale cover/probe/gate rows,
+slow constraints, and refreshed cached seminaive headers. Combined runtime
+flags also pass those tests. Additional terminal mixed-batch tests are queued.
+
+Next experiments: protect factorized private-key payloads, group only variables
+with identical relation occurrences while leaving selective outputs as GJ
+stages, and the user's explicit binary-join experiment `R(x,y) ⋈ S(y,z)`.
+Compare both fixed covers and smaller-side selection using refreshed subsets,
+across relation-size imbalance and join-key fanout. Ground-truth harness for
+all 81 luminal/eggcc/hardboiled programs is prepared, but no candidate has yet
+earned promotion to that confirmation stage.

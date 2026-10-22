@@ -465,9 +465,11 @@ impl SinglePlan {
                     let report_cover = ReportScan(cover_atom_name, cover_cols);
                     let report_to_intersect = to_intersect
                         .iter()
-                        .map(|(scan, key_spec)| {
+                        .map(|(scan, _)| {
                             let atom_name = get_atom(scan.to_index.atom);
-                            let cols: Vec<(String, i64)> = key_spec
+                            let cols: Vec<(String, i64)> = scan
+                                .to_index
+                                .vars
                                 .iter()
                                 .map(|col| {
                                     let var_name = get_var(
