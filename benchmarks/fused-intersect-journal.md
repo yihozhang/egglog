@@ -2291,3 +2291,50 @@ zero matches. A five-pair selective timing comparison is being prepared.
 
 Artifacts: selected-unroll-plans/independent-plan-audit.json/.txt,
 comparison.json and compact-plans.txt; collect-selected-unroll-plans.py.
+
+## Shared-sort code size and focused production check
+
+The lifetime-only helper yields one sort instantiation as intended: all twelve
+run_plan variants call the same 96-byte helper, followed by one driftsort_main,
+one drift::sort and one quicksort body. Text shrinks 94,160 bytes versus the
+inline-sort candidate (7,554,402 -> 7,460,242), leaving +21,600 bytes against
+control. Each run_plan body and entry stack reservation is byte-size-identical
+to the inline candidate. This is code sharing, not a stack-frame repair, and
+does not establish the cause of timing changes.
+
+The focused unchanged-input Hard128 comparison passes provenance checks for
+all thirty timed processes. Fifteen pairs give +0.404% mean wall, +0.445% paired
+median, ten of fifteen slower. Order groups are +0.366%/+0.448%, both below
+0.5%. The prior approximately 1% loss is not reproduced, but no speedup is
+claimed. With this bounded follow-up complete, the shared candidate proceeds
+to root11, separate exact report oracles and math12; external81 remains pending
+those results. The candidate remains unapplied.
+
+Artifacts: scalar-only-shared-sort-code-layout/evidence-note.txt and underlying
+symbol/prologue evidence; scalar-only-shared-sort-hard128-independent.json/.txt.
+
+## Isolated MinCover Add/trips4 win confirmed, whole workload neutral
+
+Five timed pairs plus two warmups per model use one frozen ceccc2a1 binary,
+CPU24/j1/no-decomp, with only the two selected rules switching GJ to live-MinCover.
+All 28 reports, 109,200 full ordered entries and 3,276 target entries pass complete
+own-mode and cross-mode count/changed/updated/can_stop/final-size and provenance
+audits. No timing samples are excluded. This is a zero-output search experiment.
+
+The two-rule sum is Llama 0.605862 -> 0.373962 ms (-38.276%) and Qwen
+0.605562 -> 0.388604 ms (-35.827%). Every pair and both order groups improve;
+each orientation independently improves in all five pairs. State0 improves
+27.42%/24.19%, state1 49.98%/48.39%. Whole query is -0.153%/+0.351% with mixed
+pairs and wall +0.422%/+0.124%; these do not establish a whole-process benefit.
+
+Both inputs end with one LoopStart and one LoopEnd; source loop bounds are
+31/35 whereas the selected rules require4. MNum4 is present elsewhere, so an
+absent constant table alone does not explain rejection. Actual runtime order,
+subsets and reject location remain unknown. LoopStart's private RHS key initial
+excludes it from the earlier all-shared-PK heuristic. The next identifying
+ablation will isolate just its full-live-row fused cover and leave the remaining
+variables to GJ, rather than adopting the entire native suffix or a named-rule
+production condition.
+
+Artifacts: selected-unroll-timing/independent-timing-audit.json/.txt and raw runs;
+selected-unroll-timing-prepared/manifest.json. No production planner change.
