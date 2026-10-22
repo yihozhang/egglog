@@ -3123,3 +3123,34 @@ families, and changes no executed stages. Its log action ids are not unique
 across skipped focuses/rulesets: opportunity counts will use chronological
 per-description observations, with full-report correctness audited separately.
 No census engine run has occurred yet.
+
+## Singleton metadata census built; alternate-ready driver idea lacks evidence
+
+The metadata-only singleton census freezes as singleton-cover-census.patch SHA
+daf9e4d586787c078400e44a9811287d8b74ca5ba75ffccc159a7ed733096bf7,
+source manifest 5615fc66f60b037d134972bb343e73197e9979f81695379b3a011d841e1fa02e.
+Its exact base is first-eight PK-v2 plus original probe-order and one-cover
+ablation patches. All their policy switches are off for the census. No lazy,
+retained-root or activation-trace implementation is included.
+
+Builder manifest 925783cc1357f92cd0b9bdf2180d9233b7e72a55088ec0d122a843247878ff37
+pins 15 files and eleven patches. Both observer-off/on core configurations pass
+175 tests, bridge passes 19, and fmt passes. The actual Cargo artifact freezes as
+egglog-singleton-cover-census SHA
+9df75277bfbd2d83e5513d3574b64183e270b86315a3abae923c4abc6234575d.
+Original executor/fixture bytes at the base boundary and full source/index/status
+restoration pass. No census engine capture has run yet. Root11 plus math12
+collection is being prepared with full own report oracles and separately audited
+chronological metadata; none of its times will be performance evidence.
+
+A distinct small prefilter idea was checked against the saved readiness/group
+records before implementation: prefer an already-published scalar driver's cover
+family over the absolute smallest driver's unpublished family. Every one of the
+23 actual unpublished declines aligns with archived calls where BOTH cover-family
+observations were Unallocated (Hard32 eight, Hard128 ten, resize five). In Hard128
+Ramp/Ramp iteration61/ordinal1, both calls have supported Packed scalar drivers
+with 540 left keys and 19 right keys, and both corresponding cover families are
+unallocated in both calls. Thus choosing the other ready driver is unsupported
+for these cases: the archives show none. This is saved-data evidence, not an
+extra lookup added to the measured or activation binaries. No policy trial is
+started from aggregate readiness alone.
