@@ -1194,3 +1194,143 @@ last. Plans are identical across sizes and counts agree. The next useful
 ablation is Bop's remaining two shared key columns after preserving the
 unary-domain operator as a scalar key anchor. Private Ramp-key fusion is
 not the demonstrated cause of this PureSize gain.
+
+
+## Splitting fixed keys before compound probes; asymmetric binary fanout
+
+`anchored-split-fixed` factors the existing fixed-source proof into a helper.
+For the already-ranked candidate, it leaves a proven-fixed key scalar only
+when another real atom contains that key and a varying grouped key. With
+fewer than two varying keys left, it returns the exact original GJ plan
+before mutation. With at least two, only those keys form the group; existing
+anchor waiting preserves the scalar refinement first. It leaves ranking and
+separate one-key probes unchanged. All 175 core tests pass with flags off,
+split policy enabled, and combined diagnostics. Tests include both fallback
+and retained higher-arity fusion, repeated columns, self-exclusion, constants,
+stale cover/probe rows, slow constraints, and one/four-worker output oracles.
+The new frozen binary includes the retained production cadence in all controls.
+
+Six exact residual-plan captures pass: each 6,040-entry GJ/split pair has
+identical counts, changed flags, final sizes, and every logical plan. A
+collector audit path initially used the old label `fixed` instead of `split`;
+the six engine runs had succeeded, and an audit-only correction validates the
+saved artifacts without repeating them.
+
+`split-fixed-root11-pilot` completes all 55 attempts and preserves all 350,590
+ordered report entries, changed flags, and sizes. Query changes versus the
+matched waiting GJ control are Llama -1.91%, paged -1.35%, Qwen -1.86%,
+Qwen3 -3.06%, Whisper +0.92%. The three diagnosed batched layout losses
+vanish. Residual costs include the fourth col-by-row layout orientation and
+Whisper unroll-Add/direct-exp. Hard32's large pilot gain spans nearly every
+rule and is not attributed to fusion; repeated confirmation is required.
+The five-pair, one-warmup root11 confirmation has completed; independent
+paired/count audits are pending. Preliminary wall times remain mostly
+neutral or mixed, so no planner change is promoted.
+
+`asymmetric-binary-pilot` tests eight ordinary-relation fixtures: fanout 1:8
+and 2:16, both mirrored and both row-size orientations (4096:8192 and
+8192:4096). Each performs exactly 524,288 actions across repeated naive
+rounds. Separate frozen-binary panels compare forced first/last/small/cached-
+unique directions with their own GJ control, and native Pure/Min with their
+own GJ control. No raw timing comparison is made between binaries. All 64
+runs, 4,608 individual ordered rule entries, aggregate 33,554,432 actions,
+and final output sizes agree; all frozen/input hashes pass.
+
+Mirrors agree: the lower-fanout cover is always cheaper than the opposite
+fused direction, but a larger unique cover still loses to GJ by about
+36-44%, despite beating the smaller high-fanout scan (about 141-146% slower
+than GJ). Even a smaller fanout-two cover loses about 14-15%. Only a unique,
+smaller cover has a modest historical forced-path win in this discovery
+sample. Native Pure/Min lose all eight cases. This supplies no reason to
+replace GJ with a scan of a larger unique cover. Existing GJ already chooses
+the smaller distinct-key prober after index construction; row count is not
+its sole choice criterion.
+
+Omitting private unused non-key/timestamp bindings while retaining stages
+and probes was already tested separately (`strategy-prune-dead.patch`), not
+just dead-stage elision. It improved native binary-MinCover math query about
+3.23% but remained 7.46% slower than GJ. Different historical leaf-borrowing
+and newer factor batching also confound any cross-binary explanation of
+the asymmetric panel gap. Do not reattribute that gap to timestamp columns
+or rerun projection pruning without new evidence.
+
+
+The completed split confirmation preserves all 264 reports, 1,682,832
+ordered individual entries, changed flags, aggregate counts, final sizes,
+and frozen/input hashes. Split-wait versus matched waiting GJ improves
+query time in all five pairs and both order groups for Llama -1.94%, paged
+-1.08%, Qwen -2.11%, Qwen3 -2.89%. Corresponding wall changes are +0.61%,
+-0.91%, +0.70%, +0.19%. Whisper query +0.19% is mixed by order group.
+No-wait versus plain GJ also has all-five query gains on those four models,
+with generally neutral wall and Qwen3 -0.73%. These results establish small
+query improvements, not a broad end-to-end gain. Keep the policy experimental.
+
+Six further Whisper plan captures preserve all 36,240 entries and change
+only the selected rules. The remaining col-by-row layout selects
+MMul(MIter,nth_from_end87), domains [1,161], with independent scalar probes;
+it is not the repaired Sum compound-probe pattern. Unroll-Add selects
+ICons(LoopStart,INil), domains [2,1], but LoopStart's physical keys vary, so
+its estimate of two is not a singleton proof. Direct-exp selects
+Op(Constant,INil), domains [8,1], with a range-constrained Constant and scalar
+probes. That shape wins on other models. No further structural rejection
+is justified by these traces alone.
+
+Timer inspection distinguishes known boundaries from speculation: cached
+plan creation/admission and seminaive header assembly precede db.run_rule_set
+and are absent from rule timing. Prepared index metadata and lazy root/
+residual index acquisition are inside serial rule query timing. In the four
+improving models, the difference between search/apply and summed rule queries
+changes only about -0.026 to +0.070 ms, while reported execution phases improve
+0.77-1.69 ms. Mixed wall changes sit in a much larger unreported bucket that
+also includes frontend, input, serialization, startup, and teardown. Existing
+reports cannot attribute that bucket to admission or index construction.
+
+## Conditional full-key fusion after an operator-domain filter
+
+The separate `anchored-pk-domain` prototype starts from the original anchored
+stack, omitting later domain-bound/fixed-key/split policies. A candidate's
+complete physical key must consist of shared variables or explicit constants.
+One key variable must have another real unary-key domain source with no other
+live variables. Leave that variable scalar and group at least two remaining
+shared key variables; constants plus scalar anchor plus group still cover the
+full physical key. This allows a private RHS output, unlike the old non-key
+anchor requirement. Existing anchor waiting needs no change. All 173 core
+tests pass flags-off, PK-domain, and combined diagnostics; fixtures cover
+repeated/constant/missing keys, fallback state, stale rows, multiple operator
+values for the same key pair, payload fanout, and one/four-worker output.
+
+`pk-domain-equal-lanes-screen` first validates six untimed GJ/Pure/PK plans,
+then runs five timed repetitions plus one warmup on Hard32/128. All 42 reports
+preserve full counts, changed flags, and sizes; only the selected logical
+plans change. The candidate is exactly Bop(lhs,rhs) fusion with retained
+operator and lane intersections and three payload leaves. It captures the
+Pure local gain: Hard32 GJ 1.134 -> PK 0.948 ms (-16.4%), Pure 0.953 ms;
+Hard128 2.882 -> 2.258 ms (-21.7%), Pure 2.294 ms, all five pairs. Whole-query
++0.956%/+0.205% and wall +0.616%/+0.255% do not establish a workload gain;
+order groups differ outside the target. A bounded broad eligibility screen
+is the next experiment, not an immediate production change.
+
+
+Further attribution prevents treating the PK whole-query tradeoff as mere
+noise. The unselected ramp-pair rule slows +16.7%/+16.5% on Hard32/128,
+in every pair and both order groups, despite identical logical plans and
+counts. Its extra 0.162/0.395 ms offsets most of the selected rule's
+0.186/0.624 ms saving. Changed row/action ordering or cache behavior is a
+plausible downstream cause, not an established one. PK and Pure per-entry
+target savings correlate 0.997/0.996, supporting the same local mechanism.
+
+Final split attribution is similarly mixed: four known positive-output rule
+families save 1.566/1.107/1.698/2.662 ms in Llama/paged/Qwen/Qwen3, with each
+rule faster in all five pairs, while other rules add back
+0.803/0.475/0.791/0.883 ms, chiefly the two remaining col-by-row layouts.
+Whisper has consistent losses in unroll-Add4 (+1.622 ms), direct-exp
+(+0.487 ms), and both col-by-row variants (+0.482/+0.427 ms); mixed lower
+FEFE times offset these in the total. Summed split-wait query is -0.145%
+against wait-only GJ but +0.079% against plain GJ; summed wall
++0.008%/+0.252%. No broad wall win is established.
+
+Constant-header processing is another timer-boundary nuance: seminaive
+reprocess_constraints can construct column indexes before db.run_rule_set.
+A planned diagnostic will time cached-plan construction and this header
+phase separately. The absence of ordinary join-index work from the wall
+residual does not imply that all index construction is inside query timing.
