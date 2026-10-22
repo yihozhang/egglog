@@ -3998,3 +3998,112 @@ every key column in the leader projection and could not supply an omitted explic
 constant. Existing tests used constants only in non-key columns. The reported
 nth_from_end gap therefore has not been closed by the later scalar-catalog policy.
 Its exact target eligibility is being checked before any implementation trial.
+
+
+## List-tail work census: construction savings versus a larger probe domain
+
+The observation-only experiment is accepted independently: twelve captures,
+55,360 ordered report entries, 280 selected target entries and 140 ON scopes.
+All own/cross output counts, changed/updated/can_stop flags and final sizes agree.
+Full OFF/ON plans are identical within each strategy; only the exact list-tail
+rule changes across strategies. There are no invalid, stopped or empty-root
+scopes. GJ uses DEFER0; original selected Min uses DEFER1, with LIVE0/BRIDGE0 and
+catalog filtering OFF throughout. CPU24/j1/--no-decomp; these are untimed work
+captures, not a performance comparison. Diagnostic elapsed is used only to align
+scope identities with reports and is excluded from the interpretation.
+
+V1's build failed before testing because core-relations lacked direct serde and
+serde_json dependencies. Source/index/status restoration was exact. V2 preserves
+all three Rust files byte-for-byte and adds only two workspace dependencies and
+their existing lockfile edges. No new package/version/network access. V2 patch
+7e3af86a and binary efe6f53c pass 170 core tests in both catalog configurations,
+19 bridge tests and formatting. Actual Cargo artifact provenance and exact
+restoration, including Cargo files and the original user diff, are audited.
+Failed V1 artifacts are retained separately. Frozen runner d29cec5d pins 109
+artifacts and all twelve captures completed successfully.
+
+| Actual selected-rule work, GJ -> original Min | Llama | Qwen | Whisper |
+| --- | ---: | ---: | ---: |
+| Matches, unchanged | 5,509 | 8,169 | 2,126 |
+| Index acquisitions | 62 -> 31 | 70 -> 35 | 8 -> 4 |
+| Packed build callbacks | 30 -> 0 | 34 -> 0 | 3 -> 0 |
+| Physical rows supplied to packed builds | 5,503 -> 0 | 8,159 -> 0 | 2,009 -> 0 |
+| Catalog refresh callbacks | 1 -> 0 | 1 -> 0 | 1 -> 0 |
+| Normal scalar lookup attempts | 5,875 -> 6,804 | 8,649 -> 9,700 | 1,768 -> 6,605 |
+| Failed lookups | 542 -> 1,471 | 675 -> 1,726 | 828 -> 5,665 |
+| Requested/projected scan rows | 10,842 -> 12,313 | 16,143 -> 17,869 | 3,066 -> 8,731 |
+
+GJ refreshes consumed-buffer's whole-table scalar catalog on the first entry,
+then builds its local scalar packed delta index on every subsequent entry. Min
+scans those rows directly and acquires only the already-available ICons catalog.
+The first catalog callbacks span 1,301/1,541/4,596 physical rows. ICons uses
+CachedColumn throughout with no observed refresh/build. In this exact plan the
+physical columns differ, disambiguating stage+column build counters; the observer
+is not a general per-atom build-attribution facility.
+
+Every entry preserves accepted prefix frames and ICons suffix rows. GJ also
+executes 5,333/7,974/940 consumed-buffer payload continuations, each a singleton;
+Min obtains those values in the cover projection. Qwen entries 129--161 isolate
+the recurring tradeoff especially well: both strategies perform 7,301 ICons
+lookups, yielding 6,864 successes and 437 failures. GJ additionally builds 33
+packed indexes over 7,301 delta rows and scans 6,864 singleton payload leaves.
+Min removes these, projecting 437 extra failing cover rows. This establishes
+removed construction and continuation work, not a timing decomposition.
+
+Whisper entry 178/0 shows the opposite cost balance. GJ builds the 1,895-row delta
+index but then enumerates only 827 ICons keys: 84 pass and 743 fail. Min projects
+and probes all 1,895 cover rows: 84 pass and 1,811 fail. Its 1,068 extra failures
+are not a suffix fanout explosion: both suffixes contain exactly 84 singleton
+rows. Total normal projection is 168 versus 1,979 rows. Whisper's first entry
+also has more native probes (4,596 versus 827), but GJ alone refreshes the 4,596-row
+catalog and traverses 826 singleton payload leaves. Historical seven-pair timing
+wins/losses are consistent with differing balances, but used GJ DEFER1 and cannot
+quantify costs in the current diagnostic binary.
+
+The observer records actual packed-build callbacks separately from acquisitions.
+It excludes construction outside selected stages, tuple-child builds and inline
+SmallColumn work. Frame counts are intermediate continuations, not final matches.
+The first-1024 lookup sample caps four times; 64-distinct-key/miss caps occur
+120/nine times. Capped distinct counts are lower bounds, not exact repetition
+estimates. Uncapped recurrent Qwen misses do not repeat; capped samples cannot
+support a general absence-cache opportunity. Equal values can also address
+different residual sources. No new size threshold, memo, native switch or timing
+claim follows from these counts alone.
+
+Artifacts: fused-work-census-v2/{work-census.patch,manifest.json};
+fused-work-census-v2-build/{manifest.json,independent-build-audit.json};
+fused-work-census-prepared/runner-manifest.json;
+fused-work-census-diagnostics/{audit.json,independent-raw-audit.json,
+independent-acceptance-note.txt,runtime-work-interpretation.json,
+runtime-work-interpretation.txt,runtime-mechanism-summary.json};
+runtime-interpret-list-tail-work.py.
+
+
+## Separate constant-primary-key gap: restricted prototype in preparation
+
+The old private-unique reversal admitted explicit constant PK columns in the
+planner but required every physical key column in the runtime leader projection.
+For nth_from_end(list,n), projecting list/value omits constant n, so reversal
+falls back. Existing constant tests constrain non-key columns, and later scalar
+catalog filtering does not close this gap. The archived expensive Mul and Sum
+rules each have 225 total matches; the prior shorthand about zero-match losses
+refers to their 83/47 zero-output entries, not the entire rules.
+
+A modest separate prototype is being prepared on clean FIRST3, without catalog,
+census or lazy changes. Its planner restricts candidates to exactly one varying
+physical PK column, at least one explicit constant PK column, exactly one shared
+variable and an RHS-live private non-key payload. It preserves original candidate
+size/AtomId order and the remaining GJ suffix. The runtime helper independently
+uses an already-built supported scalar driver only when its key count is smaller
+than the current cover; it fills explicit constant PK slots, performs existing
+primary lookups, checks current subset membership, and scans sorted physical row
+IDs through the original constraints/probes/drain path. Partitioned covers and
+unsupported drivers retain the original path. No new index/cache/API or runtime
+replanning is included. This has not been built or measured yet.
+
+Three controls will distinguish strict GJ, the restricted planner alone, and the
+same planner plus helper. Current full-native Pure plans do not select nth covers
+in these targets, so they are not an activation oracle for the new experiment.
+First verify meaningful helper fixtures and actual reported target plans.
+Artifacts: constant-primary-key-reversal-assessment.txt;
+constant-key-private-planner-design.txt; constant-key-cover/ (draft only).
