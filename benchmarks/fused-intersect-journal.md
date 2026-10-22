@@ -453,3 +453,93 @@ is no broad improvement. This screen is baseline-first for every case and
 only one repetition, so it is diagnostic rather than a significance claim.
 Full commands, binary hashes, raw outputs, and explicit inherited fused
 environment are retained with the results under /tmp/fused-lab.
+
+The threshold screen (`minimal-batch-threshold-screen`, five timed root
+pairs plus warmup and two timed math runs plus warmup) does not establish a
+benefit from a minimum product size. Thresholds 0/8/32/128 all improve
+cykjson about 14.5%–15.1%, keep Hardboiled-128 within 0.3%, and keep whisper
+within 0.4% by mean. The previous whisper regression does not reproduce even
+with threshold zero in this rebuilt candidate; thresholding alone therefore
+does not explain it. Math query means are 2.05000 s baseline and
+1.97676 / 1.97502 / 1.97542 / 1.97922 s for the four thresholds (3.45%–3.66%
+faster), with wall 9.26415 s baseline versus 9.16270–9.21657 s. Every output
+hash and recorded math count agrees. Retain no minimum-size policy without
+stronger evidence.
+
+Unlike the rejected grouped executor, isolated batching leaves run_plan and
+expand_binding_sets code and stack sizes essentially unchanged: run_plan text
+372624 -> 372540 bytes; one frame shrinks 16 bytes and eleven are unchanged.
+The bulk helper is inlined into a single serial factorized-action dispatcher,
+which reserves 424 bytes even on fallback. A tiny helper split will test
+whether this avoidable fallback cost accounts for broad small regressions.
+The terminal singleton fusion prototype now passes all 167 core tests,
+including direct ordered oracles for either side, filters, stale rows, DVO
+changes on rejected groups, prior factors, and cancellation. Its performance
+screen compares original, same-binary control, batching, singleton, and both.
+
+The singleton screen (`math12-singleton-tail-screen`, two timed runs plus
+warmup) preserves every final size and all 352 report-entry counts in all
+15 executions. Query means: original 2.03497 s, same-binary control 2.03974,
+batching 1.98556, singleton 2.02042, combined 1.96507. Singleton improves
+query time 0.87% / 1.03% versus control, with factoring 250.64 -> 218.22 ms
+(-12.93%); Add associativity/distribution losses offset part of that saving.
+Combined improves query time 0.49% / 1.57% versus batching. Its apparent large
+wall gain includes a 293 ms rebuild outlier, so it is not attributed to joins.
+The helper avoids the rejected grouped executor's run_plan stack growth, but
+its roughly 1 KB frame was entered before cheap eligibility rejection. A
+five-line caller guard now checks the terminal shape and singleton sizes.
+
+The thin batching dispatcher works as intended in machine code: wrapper text
+3371 -> 414 bytes, stack reservation 424 -> 40 bytes, with the unchanged bulk
+loop separately outlined. It passes all 166 core tests. Root11 confirmation
+(`root11-thin-batch-confirm`, five timed plus warmup) is neutral by summed
+means (-0.02%) and improves cykjson 14.53%; luminal-llama regresses 3.20% in
+that session. In the subsequent three-way confirmation this regression does
+not reproduce: batch luminal +0.55% with mixed pairs, summed time -0.26%,
+cykjson -15.05% in every pair. Avoid attributing small cross-session changes
+to outlining alone.
+
+The three-way screen (`root11-singleton-preguard`, five timed plus warmup)
+compares original, isolated thin batching, and guarded singleton plus batching.
+All 165 timed runs succeed with identical per-workload output hashes. Adding
+singleton fusion loses 2.56% on cykjson and 0.625% on Python-array versus
+batching in every pair; whisper loses 0.93% (one larger outlier). Combined
+summed time versus original is only -0.057%. There is no broad benefit from
+retaining the extra singleton executor, despite the math factoring improvement.
+A three-run math confirmation remains in progress; the smaller batching
+change is the better production candidate.
+
+Default multi-atom GJ already removes private unused payload columns, so
+repeating that planner optimization cannot help its hot binary math rules.
+The bridge forces single-atom queries to MinCover, however, retaining dead
+columns in four math rules. A separate small single-atom/single-stage pure
+fused-scan pass removes only unused projection columns while retaining row
+multiplicity, constraints, and one column when all are dead. Expected widths:
+Add/Mul commutativity 4->3, Sub a b 4->3, Sub a a->0 3->1. This is the next
+small planner experiment; it is separate from the rejected singleton runtime.
+
+Guarded singleton math confirmation (`math12-singleton-preguard-confirm`,
+three timed runs plus warmup) again preserves all 352 entries and final sizes
+in all 16 executions. Against its same-binary batch-on control, query improves
+0.95% / 1.43% / 1.38%, with factoring 245.60 -> 220.77 ms (-10.11%)
+accounting for essentially all savings. Wall paired median is only -0.097%.
+Together with the repeated root11 costs, this is insufficient to keep the
+extra executor. Its code and tests are archived under /tmp/fused-lab.
+
+Single-leaf pruning (`math12-prune-single-leaf-screen`, two timed plus warmup)
+passes all 167 core tests and exact counts in all 12 measurements. The four
+affected rules improve 57.02 -> 54.40 ms (-4.58%), saving 2.54 / 2.69 ms per
+pair. Overall query instead changes 2.04607 -> 2.05663 s (+0.52%), with
+losses in unchanged binary rules. Apparent wall gain includes a 348 ms rebuild
+outlier and is not a pruning speedup. The small targeted benefit does not
+establish an overall gain; this planner experiment is removed from main.
+
+The production candidate now contains only default serial factor batching,
+without experimental environment flags or product thresholds. Its stronger
+test includes an RHS variable present in both factors, confirming inner-value
+precedence across 128-row boundaries. All 166 core tests pass. The generated
+dispatcher shrinks again to 151 bytes and only an 8-byte alignment push, versus
+414 bytes / 40 local bytes / six saved registers with flags. Join-loop and
+ordinary expansion layouts remain unchanged. Final confirmation uses the
+root harness's full 15 timed repetitions plus three warmups, followed by math
+and an interleaved three-timed/one-warmup external 81-case confirmation.
