@@ -2727,3 +2727,72 @@ frozen fixtures remain untouched. No builds or measurements have run yet. A
 same-binary eager/lazy local comparison and broad high-survival checks will
 establish whether saved acquisition outweighs the added completion check and
 possible deferred shared-index initialization.
+
+
+## Lazy acquisition passes correctness and improves local rejection searches
+
+The frozen lazy-prefix experiment builds successfully. All 176 core tests pass
+in five configurations (off, lazy, ORDER1 eager fallback, selected one-cover and
+selected live-Min), all 19 bridge tests and formatting pass, and original source,
+index and status bytes are restored exactly. Binary egglog-lazy-fused-probes SHA
+5cce2eb36abd5c4786bced8efe6949bd43c121d1a529eea39dbed163fbe2ef29 uses the
+exact ten-base stack plus aab8cef6, without tracing or readiness instrumentation.
+
+The balanced same-binary local comparison accepts all 70 processes: two models,
+five treatments, five timed rounds plus two warmups. Every treatment occupies
+each timed position exactly once, and every pair appears in both orders (2/3).
+CPU24, j1, --no-decomp, 10-second/32-GiB bounds; eager/lazy treatments differ only
+in LAZY_PROBES. All 273,000 ordered entries and 8,190 selected entries match their
+own and cross-treatment full count/changed/aggregate/updated/can_stop/final-size
+oracles. All 62 provenance pins, source restoration, commands and flags pass the
+independent audit. No samples are discarded or rerun.
+
+Direct eager-to-lazy target sums (milliseconds):
+
+| Plan | Llama eager/lazy | Change | Qwen eager/lazy | Change |
+| --- | --- | --- | --- | --- |
+| One-cover | .587963 / .453463 | -22.876% | .568086 / .462321 | -18.618% |
+| Selected live-Min | .445067 / .293439 | -34.069% | .393232 / .298119 | -24.188% |
+
+Every sum and each individual orientation improves in all five pairs and both
+order groups. One-cover state0 improves 31.38%/25.29% and state1 9.99%/9.27%;
+live-Min state0 improves 45.15%/31.81% and state1 12.39%/11.91% (Llama/Qwen).
+These remain zero-output rejection searches. The prior trace's unused-acquisition
+lead now has measured local evidence, without identifying fresh index builds or
+attributing all gains to a specific acquisition suboperation.
+
+Whole-query/wall changes are smaller and mixed. One-cover: Llama -.394%/-.283%,
+Qwen +.508%/+.304%; live-Min: Llama -.605%/-.624%, Qwen -.262%/+.507%.
+No broad workload or production gain is claimed. Next reuse the existing native
+PureSize/MinCover panels, including positive-output CYK/Hard/eggcc/model rules,
+to check the extra completion branch and any downstream cache-cost shifts.
+
+Artifacts: lazy-fused-probes-build/{manifest.json,test-*.log};
+lazy-fused-timing-prepared/{manifest.json,README.txt};
+lazy-fused-timing/independent-timing-audit.{json,txt}. The candidate remains
+unapplied to main; no production change is retained yet.
+
+## Retained-root prefilter prototype design accepted
+
+The concrete design in cover-group-diagnostics/retained-root-proposal.txt is
+approved for a separate temporary prototype. A small immutable eligible-cover
+list in PreparedJoinIndexes retains the actual initial shared root after normal
+root acquisition. It adds no per-access state, recursive argument or BindingInfo
+clone cost. Initial scope is SinglePlan filtered scalar mappings; decomposed and
+materialized cases fall back. The estimated change is 120-180 production lines.
+
+Execution retains eager probes and original ordering, selects an existing sorted
+scalar view, and falls back for top partitions. It peeks only an already-published
+empty-slow-family index for the exact retained cover root. Actual key count must
+be smaller than the current cover; summed raw group lengths must also be strictly
+smaller before any row enumeration. This uses no workload name or copied cap8.
+The materialized union intersects current-cover membership and sorts by physical
+RowId, then uses unchanged projection, slow/live checks, all probes/refinements,
+frame draining and restoration. Empty results flow through ordinary cleanup.
+
+These necessary-condition restrictions can save scans but are not a net-cost
+model. Key lookup, sparse membership, sorting and sidecar overhead must be timed;
+default GJ also needs an overhead screen. Parallel top-partition fallback avoids
+workers partitioning different candidate universes as indexes become published.
+The prototype is independent of lazy acquisition and diagnostics, and requires
+an output/order oracle before measurement. No prefilter policy is retained yet.
