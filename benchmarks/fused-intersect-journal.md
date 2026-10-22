@@ -2180,3 +2180,34 @@ test-bridge.log. Source patches are scalar-only-production/scalar-only.patch
 Neither is retained yet. Broad production validation and a bounded untimed
 Gamma runtime-order diagnostic are being prepared; no further static capture
 or size-threshold fitting is planned.
+
+## Scalar-only production screen: neutral aggregate, Hard128 follow-up required
+
+The frozen flag-free control/candidate complete all root11 wall runs: fifteen
+timed pairs and three requested warmups, 330 successful recorded timed processes,
+original unchanged inputs, CPU24/j1/no-decomp, no overlapping builds or engines.
+Summed mean wall is 1.993670 -> 1.993514 seconds (-0.0078%); seven of eleven
+case means improve. The material loss is Hard128: 338.434 -> 341.845 ms
+(+1.008%), paired median +0.950%, fourteen of fifteen pairs slower. Both order
+groups agree (+1.090% control-first, +0.915% candidate-first). Hard32 is +0.309%;
+all other mean losses are below 0.18%. Aggregate neutrality does not resolve
+the Hard128 signal; a focused repeat and generated-code inspection are pending.
+
+Separate untimed root11 oracles accept all 22 reports and 140,236 ordered
+per-rule entries, including counts, changed/updated/can_stop, aggregate counts
+and nonempty final table-size maps. These inputs add only print-size/print-stats.
+No eggcc nondeterminism exception is needed. This establishes the recorded
+logical/count/size oracles, not equality of every table's contents.
+
+Math at iter12 completes three timed pairs plus one warmup: all eight reports
+and 2,816 ordered entries are exact. Query is +0.240% in all three pairs, while
+wall is -0.069% with mixed pairs. Merge +1.223% and rebuild -0.715% largely
+cancel in total time. The scalar sort is logically inactive in default no-decomp
+GJ, so these changes are regression signals or variability, not different probe
+work. No causal compiler/layout conclusion has been established. External81
+remains prepared but unrun, and the candidate remains unapplied/on hold.
+
+Independent evidence: scalar-only-production-root11-independent.json/.txt,
+scalar-only-production-root11-oracles-independent.json/.txt,
+scalar-only-production-math12-independent.json/.txt and
+scalar-only-production-validation-independent.txt under /tmp/fused-lab.
