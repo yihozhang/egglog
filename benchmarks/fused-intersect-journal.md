@@ -598,3 +598,97 @@ its repeated cykjson and math gains; describe the broader suites as neutral,
 not universally faster. The rejected runtime/planner prototypes stay archived
 outside the working tree. Further exploration will use actual factor-count
 telemetry before considering extension to three or more factors.
+
+## Factor census and local strategy comparison (2026-10-22)
+
+An instrumented, serial-only action-boundary census compares production with
+the same code plus counters on gemma4_moe, whisper, and conv1d_128. All six
+executions succeed; final sizes and printed per-rule match counts agree.
+The diagnostic passes all 166 core tests and is frozen separately; its patch
+is removed from the working tree. Every instrumented timing is explicitly
+excluded from performance evidence. Raw records and aggregates are under
+`/tmp/fused-lab/factor-census-external`.
+
+Neither Luminal case presents any product with three or more non-singleton
+factors. Gemma4_moe emits 84,044 rows (25,453 scalar, 58,401 one-factor,
+190 two-factor); whisper emits 19,689 (5,540 / 14,019 / 130). The expensive
+gemma merge-FE-FE rules emit exactly 2,470 Mul and 190 Add scalar bindings,
+all successful. Their cost is in join search, with no factor-product batching
+opportunity. Conv1d_128 has only 118 three-or-more-factor calls producing
+2,268 rows out of 126,237 emitted (1.80%); these belong to two Broadcast
+rewrite directions. This does not justify extending the batcher yet.
+
+The user suggests inspecting local MinCover/PureSize wins, even when whole
+workloads lose. Prior native-strategy measurements cover math; the earlier
+root11 and synthetic binary studies mostly test custom fusion heuristics,
+not native MinCover/PureSize. Prepare a clean same-binary native-strategy
+comparison on the current production base, retaining optional payload
+scheduling as an independent treatment. Collect per-rule times and counts
+alongside workload times, then retest promising rule families selectively.
+
+The clean native-strategy root11 pilot (`strategy-root11-pilot`) uses one
+frozen executable, six treatments (GJ/PureSize/MinCover, each with and without
+payload scheduling), one sample, CPU24, one worker, and --no-decomp. Identical
+time-only reports are requested for every treatment; serialization increases
+wall time relative to the ordinary root harness. Adaptive watchdogs bound the
+screen. Of 66 attempts, 36 complete and 30 time out. Both GJ controls finish
+all 11 cases. Raw PureSize/MinCover each finish 3/11; scheduled variants each
+finish 4/11. No native whole-workload winner appears. All completed final
+sizes agree; eggcc-extraction native strategies change rule/iteration counts.
+The completed-case query regressions remain large with scheduling: about
+14.4x on CYK, 11.9x on old luminal-llama, 17x on Python-array, and 1.5x on
+eggcc-extraction. Timeout cases have no final report and cannot be ranked
+beyond their watchdog observations.
+
+The largest apparent local gain is a three-atom Luminal constant fold,
+`MMul(MNum(a), MNum(b))`: about 55 microseconds in the initial broad sample.
+An exact-selector follow-up (`native-mmul-followup`) changes only that rule,
+with 12 timed repetitions plus two warmups and independent scheduling
+controls. Selection tracing confirms exactly one three-atom rule changes.
+Across all 72 timed reports, every one of 1,155 whole-workload seminaive
+entries and all 50 target entries agree, as do final sizes; the target has
+62 matches. Against GJ with scheduling, target means are 145.758 us versus
+131.846 us for PureSize (-9.54%) and 133.237 us for MinCover (-8.59%); all
+12 paired target timings improve. Whole-query means instead change +0.33%
+and +0.20%, with no process-level win. Without scheduling, the same native
+rule takes about 911 us versus GJ's 146 us. Its plan is an acyclic star:
+an MMul cover probes two MNum output columns, then scans numeric payloads.
+The inverse MNum lookups are not proven unique by the physical primary key.
+This is a small local strategy win, not a production selection policy.
+
+Temporary per-plan begin/done tracing (`native-rule-trace`) exposes the
+previously incomplete cases; its durations are diagnostic only. Hard32
+scheduled native runs finish under a longer watchdog, with small order-
+sensitive count changes and a large ConvolutionShuffle+ search regression.
+Whisper native runs both stop in `cublaslt row-order 2d scaled c beta`.
+Completed aligned prefixes already show multi-second regressions in two
+batch-collapse rules versus millisecond GJ times. The strongest aligned
+Hard32 hint is a zero-output WMMATileB/RowMajor rule, saving about 150 us
+in diagnostic completed calls; exact-selector timing follow-up is separate.
+
+Code inspection explains the identical native strategies in these bridge
+queries. Each regular atom receives a fresh private timestamp variable;
+BucketQueue includes every atom variable, even private unused non-key ones.
+No other atom can cover that timestamp, so every atom becomes an eligible
+cover and MinCover sorts the same complete set as PureSize. The earlier
+dead-projection pruning ran after cover selection and could not change this.
+A new constrained experiment will remove only dead non-key variables from
+the cover-selection universe, retaining shared/RHS variables and all key
+variables. Selected-cover projections remain unchanged; atoms with no
+retained witness or unproven key columns must remain mandatory. This is
+expected to affect larger patterns with redundant covers, not hot math
+rules whose live private variables already make their atoms mandatory.
+
+`native-binary-confirm` directly compares native GJ/PureSize/MinCover on six
+existing R(x,y)-S(y,z) fixtures, with scheduling enabled for all treatments,
+three timed repetitions plus one warmup. All 72 executions pass exact Out,
+aggregate match, and every-round match checks. These explicit repeated-query
+fixtures use --naive as well as --no-decomp. Equal-size, one-row-per-y joins
+improve query time 24.6% under PureSize; MinCover's paired median is also
+24.6% (mean 29.5%, influenced by one unusually fast sample). At 100:1 and
+1:100 size ratios with unique y, query improves roughly 16-17% and wall
+5-7%. All three pairs improve query and wall for both strategies in all
+three unique-y cases. Equal fanout 8 instead loses 67-69% query time, fanout
+64 loses 29-30%, and 1:100/fanout8/25%-overlap loses 59-60%, in every pair.
+The native strategies therefore do have clear local wins; relation-size
+imbalance alone does not distinguish them from the losing grouped joins.
