@@ -1690,3 +1690,63 @@ physical refinement credits, with unchanged production cadence and no index
 lookup or warming. This can reveal whether a small seminaive input is already
 available before the fused cover scan. Source/archive assessment:
 pk-runtime-selection-assessment.txt. No new planner policy is retained.
+
+
+## Late selective deltas expose the missing operand access path
+
+The bounded Ramp/Ramp DVO diagnostic passes formatting and all 174 core tests
+both disabled and enabled with PK-v2. Its frozen binary is
+e518136563b12c2f3e18531ca3820e64fc4c8fab2374e1060ca3f91fd5c9d0a0.
+The patch adds no policy, cache lookup, index warming, or per-row timing;
+snapshot printing is inside the query timer, so these durations are diagnostic
+only. Temporary sources are restored exactly. Nine GJ-wait/v1/v2 reports on
+Hard32, Hard128, and resize preserve each treatment's own 24,741 ordered-entry
+oracle, final sizes, aggregates, changed flags, updated/can_stop, and provenance.
+The full catalog completion vectors align the scopes to report iterations.
+All 740 sorter calls are logged, with no entry reaching the 64-call cap.
+
+The two expensive late resize entries demonstrate a missing access path:
+
+- Iteration 68, ordinal 1 has one match. Initial physical roots are left Ramp
+  4,198, right Ramp 1, Bop 3,267, and AddOrSub 2 in all treatments. PK already
+  runs the lane intersection before the operator and fused Bop stage. At that
+  fused stage the Bop candidate subsets are 2,369 and 33 rows, versus left Ramp
+  3,643 and right Ramp 1. GJ's order is lane, right-operand intersection,
+  operator, left-operand intersection, with payload scans interspersed.
+- Iteration 71, ordinal 1 has six matches. Roots are left Ramp 4,199, right
+  Ramp 6, Bop 3,273, AddOrSub 2. PK runs operator then fused Bop, with Bop
+  candidate subsets 2,375 and 33. GJ runs operator, right operand, left operand.
+
+Thus the selective right input is available. Grouping removed the scalar
+Bop operand intersections that GJ uses to narrow its cover. Moving the lane
+intersection earlier cannot restore those accesses; in the one-row case it
+is already first. These are cached physical candidate counts, potentially
+including stale rows, not measured live scan-row or distinct-key counts.
+Absent trace sources mean moved-out state, not empty relations. Complete v1
+and v2 target count/order/source vectors are identical across all three inputs.
+
+Hard has the same adverse late shape. At iteration 69, ordinal 1, Hard32's
+Bop candidates 549/50 face Ramp 633/2; Hard128's 1,413/62 face Ramp 1,401/2.
+Existing untraced five-run means change 11.279 -> 30.090 microseconds at32,
+20.872 -> 70.638 at128. This is per-invocation selectivity, not a resize-only
+topology. Conversely, Hard128 iteration 61, ordinal 1 has Bop 1,409/62 versus
+Ramp 1,987/64 yet PK wins 169.629 -> 61.159 microseconds. Its GJ recursive
+ordering chooses the lane and left-operand path before the small right side.
+A blanket cover-larger-than-probe rejection would discard that benefit.
+
+Broad size-first execution is not wholly unexplored: commits 38bd3f43 and
+fdcc50db survive on other branches, but are not ancestors of this HEAD. They
+also alter cadence, prefix handling, or retained-row estimates; their recorded
+results do not isolate a narrow fused-credit change against this baseline.
+Do not repeat them as if new. A scheduling-only change also cannot restore
+the removed operand accesses observed above.
+
+Next assess two fixed decisions offline against existing untraced entries:
+only fuse when its root is no larger than both incident roots; alternatively,
+fall back only for an incident root within the existing eight-row scalar
+small-source path when the cover is larger. These are hypothetical additive
+timing estimates, not measured hybrid wins: switching plans changes shared
+index reuse, and existing cross-planner match differences remain relevant.
+Require evidence of useful potential before adding two-plan runtime machinery.
+Artifacts: ramp-dvo-diagnostics/independent-dvo-audit.json/.txt,
+concrete-late-records.json/.txt, and ramp-dvo-prior-policy-review.txt.
