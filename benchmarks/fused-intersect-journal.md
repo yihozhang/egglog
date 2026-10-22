@@ -3280,3 +3280,27 @@ rerun also restores the original source exactly. A minimal production-base
 reproduction is being prepared; no cause or candidate correctness conclusion is
 assumed yet. Frozen failed source and logs remain intact under
 cached-singleton-cover-build and cached-singleton-cover-fixture-debug.
+
+The minimal test-only reproduction 07fc28f0 now fails on the production base,
+without any experimental patches. After deleting the only W(7) row, W has live
+length zero, physical length one and an empty live scan, but the refreshed
+EqConst header still contains one row. The cached all-constant witness publishes
+and produces one match. This confirms an existing baseline liveness bug, rather
+than a singleton-selection failure. The reproduction and its failing log remain
+under constant-witness-stale-repro/production-run; source/index/status restore
+exactly. This unrelated production path is not changed in this experiment.
+
+A separate v2 package (patch 83a057b0, manifest d72e8c11) preserves the production
+implementation byte-for-byte and changes only the final witness fixture to
+clear_table, asserting both live and physical length zero before checking the
+empty-header early return. The earlier stale R/S tests remain unchanged. Original
+failed source/build artifacts remain immutable. V2 awaits its own build and
+full off/control/select checks before any measurement.
+
+The native activation diagnostic builds successfully as binary c3e31c15 from
+source delta 98614b6a and builder manifest 3e37e60c. All three core configurations
+pass 175 tests, bridge passes 19, and fmt passes. The builder freezes the actual
+Cargo artifact and restores full source/index/status exactly. The observer adds
+source zero/singleton counts and retention-loop work counters at existing
+operations; four Llama PureSize/live-MinCover off/on captures are next. These
+instrumented runs will establish activation, not performance.
