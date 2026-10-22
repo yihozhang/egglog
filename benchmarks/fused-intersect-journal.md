@@ -4539,3 +4539,76 @@ constant-key-position-observation-diagnostics/{audit.json,
 independent-raw-audit.json,independent-acceptance-note.txt,
 runtime-position-interpretation.json,runtime-position-interpretation.txt,
 runtime-journal-ready-observation.txt};runtime-analyze-constant-key-position.py.
+
+
+## Final shared-credit ablation and requested close-out
+
+The user explicitly requested convergence: finish the in-flight experiment,
+stop generating new heuristics, and provide a Chinese report of the prominent
+experiments and upstream PR candidates. No further prototype is being started.
+The direct constant-PK row-emission follow-up remains a read-only assessment;
+no source draft, build, or timing was produced.
+
+The last ablation modifies only filtered FusedIntersect cover refinement UPDATE:
+count distinct projected bind slots referenced by a probe instead of the full
+cover projection, so private payload columns do not receive refinement credit.
+It leaves probe contributions, scalar/scan-only/materialized behavior, score
+READs, logical-prefix seeding and sort cadence intact. The canonical prefix
+constant-key planner/helper stays unchanged. This is distinct from the earlier
+rejected max-input score READ and original-key placement experiments.
+
+Frozen patch979d432948949d0f377bdcd0a09142c76f472320e2294d1ee5ef93149ca29da3,
+source join_tail77c22547, source manifest5ed23800. Exact base FIRST3+constant-keyV2;
+no placement or observers. The root builder passes173core tests in GJ, prefix
+helper and shared-credit modes,19bridge and fmt, then freezes actual Cargo
+binary512959bd7f5632a345a523718abae9d09a86ec2d040bb6e5f404308ac64398d0.
+Full worktree/index/status restoration is exact, including original user edits.
+Two new tests use the real sorter to demonstrate a seeded pending choice flip
+and preserve repeated-slot/probe/other-stage contributions and control cases.
+
+Six untimed full captures (root and legacy Llama, each three arms) independently
+accept14946ordered entries, all own/cross outputs and prior GJ/prefix programs.
+B/C full logical plans match exactly. Root selected population305entries/332covers;
+legacy155/508, with225matches per intended Mul/Sum rule. Reported logical identity
+does not establish runtime-policy inactivity. Plan manifest e314ca0e,224pins.
+
+The final uninstrumented pilot compares A=strict GJ(DEFER0/helper0/shared0),
+B=constant-key-private prefix(DEFER1/helper1/shared0), and C=the same prefix with
+shared1. All use LIVE0/BRIDGE0,CPU24,j1,--no-decomp. Each input has two warm triples
+and three timed triples; each arm occupies every timed position once. Pair-order
+imbalance is mirrored across the two contexts, which are not pooled. The complete
+report-producing child supplies wall time. Pilot plan a21fde62,257pins.
+
+All30processes complete successfully; primary and independent audits accept30reports,
+74730ordered entries and both input contexts, with0exclusions. The independent
+audit also recomputes5016statistic blocks and verifies257pins. Means:
+
+| Input | GJ query | Prefix query | Shared query | Shared/prefix query | Shared/GJ query | Shared/prefix wall |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Root Llama | 36.429ms | 36.713ms | 37.233ms | +1.415% | +2.205% | +0.174% |
+| Legacy Llama | 6.245ms | 21.095ms | 21.493ms | +1.885% | +244.151% | +0.522% |
+
+Shared/prefix query regresses in all3pairs and both order groups in both inputs.
+Legacy wall also regresses all3pairs; root wall is mixed(1/3faster), with both
+order-group means positive. Shared/GJ legacy wall is+15.603%. The result rejects
+this credit policy, rather than supporting further promotion. No new threshold,
+observer, math/external screen or follow-up is started. The temporary source was
+already restored by the builder and is not committed. No claim is made about
+which physical sort choices or implementation overhead caused these differences.
+
+Artifacts:constant-key-shared-credit-build,constant-key-shared-credit-plans,
+constant-key-shared-credit-performance-pilot and their prepared manifests under
+/tmp/fused-lab; audit-screen.json/.txt retain all reported statistics.
+
+The requested Chinese report is benchmarks/fused-intersect-report.zh-CN.md.
+It records the prominent successful/rejected experiments, distinct comparison
+baselines, coverage and measurement limits. Three retained source commits since
+starting4b5686be are recommended as separate upstream PRs:60bd0eab(report-column
+correctness),4b0603d1(serial action-column factor batching),ee75e5f4(filtered-fused
+re-sort cadence). The first commit's reversed-column test remains in the archived
+prototype, so a minimal standalone test should accompany its upstream PR; it is
+not falsely described as committed. No remote PR was created.
+
+This closes exploration at the user's request. The original aspiration of broad
+automatic-fusion wins was not achieved; the final deliverables are the bounded
+retained fixes and the experiment record, not an unvalidated replacement planner.
