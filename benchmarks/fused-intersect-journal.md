@@ -2952,3 +2952,69 @@ and Sparse current subsets, independent row/action order, stale/slow filters and
 fallbacks. Explicit original CoverRanges test partition bypass via serial calls
 inside one/four-worker pools; they do not simulate concurrent publication races.
 This prototype has not yet been built or measured and is not retained.
+
+## Clean lazy production screen exposes default-GJ regressions
+
+The frozen clean validation bundle (plan SHA
+623e66193f0383ef58917518da8237b3bedab83fdee00dcc564b96484c3a108c)
+accepts all 154 root11 processes and 981,652 ordered entries, with no exclusions.
+Fresh control 97459cbb and candidate fbe4a0d7, default planner, five timed pairs
+plus two warmups, both execution orders, CPU24/j1/no-decomp. All 93 pins,
+transitive inputs, own historical references and current cross-binary counts,
+changed flags, aggregate flags and final table sizes pass.
+
+Summed mean query time increases .698%; summed report-backed wall increases
+.335%. Hard128 query increases 1.372% and wall 1.022%, all five pairs each;
+eggcc query increases 2.476%, all five; Hard32 query increases .935%, all five.
+Other cases are mixed: Python query improves 1.472%, Llama .639%, paged Llama
+.679%; most wall changes are small. The patch touches only the filtered fused
+branch, and prior default-GJ censuses found that branch inactive. This makes
+code-generation sensitivity plausible, but does not prove its cause. A fresh
+15-pair Hard128/eggcc confirmation is prepared; external81 is held pending
+resolution. No sample is dropped and no candidate is retained.
+
+Math at exactly iteration 12 separately accepts all 14 processes and 4,928
+ordered entries. Query improves .804% (4/5 pairs, both order groups), while wall
+increases .625% (mixed 2/5 faster and order groups disagree). The measured wall
+includes report and declared print-size/stats overhead; this is not an
+unmodified-input, no-report wall result.
+
+Artifacts: lazy-production-validation-prepared/{run.py,audit.py,plan.json};
+lazy-production-validation/independent-{root11,math12}-audit.{json,txt}.
+
+## Retained cover-root prefilter passes tests and a first timing screen
+
+The separate retained-root builder passes 175 core tests in each of off, on,
+and PK-v2-on modes, 19 bridge tests and fmt. The exact original user source diff,
+index and status are restored. Frozen binary egglog-retained-cover-prefilter SHA
+19ee7ebe163445483fae5f8cfaa5cdb809a96ddf0527b3a780424607885e1be2.
+This is the first-eight PK-v2 plus original probe-order stack and the retained
+root patch; it contains no lazy acquisition or timing trace.
+
+The frozen three-pair screen (plan SHA
+d10acaa764a5e3ba865ce6881d21103290f57429d75c74781c33d47b0bf8ff4a)
+accepts 45 processes, 123,705 ordered entries and all 52 provenance pins. It
+uses one binary, archived GJ-wait/PK-v2 settings, and changes only the prefilter
+flag between PK off/on. All own-label and within-PK outputs are exact. Resize's
+16 known cross-planner entry-count differences remain explicit; final table
+sizes agree. Driver exit2 for resize reflects that cross-planner distinction,
+not an own-plan failure.
+
+| Case | PK on/off query | PK on/off wall | Ramp/Ramp target |
+| --- | --- | --- | --- |
+| Hard32 | -.422% (3/3 faster) | +.110% (0/3 faster) | -15.325% |
+| Hard128 | +.231% (1/3 faster) | -.677% (2/3 faster) | -16.433% |
+| resize | -2.001% (3/3 faster) | -.774% (3/3 faster) | -10.322% |
+
+The late Ramp/Ramp entries improve 82.744%/59.723% in Hard32 and
+96.168%/93.717% in resize. Hard128's iteration61 is unchanged (-.012%) while
+iteration69 improves 70.511%. Equal-lanes targets improve 12.292%, 13.034%,
+and 22.003%; divisible-lanes is mixed. Whole query/wall versus same-binary
+GJ-wait remains roughly neutral; this is a local access-path lead, not a
+production promotion. A separate diagnostic is being prepared to observe the
+actual prefilter decisions and row conservation; timing alone does not prove
+which calls activated. No counters will be added to this frozen timing binary.
+
+Artifacts: retained-cover-build/{manifest.json,test-*.log};
+retained-cover-timing-prepared/{run.py,audit.py,plan.json};
+retained-cover-timing/independent-timing-audit.{json,txt}.
