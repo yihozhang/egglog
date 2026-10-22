@@ -3417,3 +3417,41 @@ failure for investigation; no name-based exclusion or threshold tuning is applie
 Artifacts: cached-singleton-performance/{audit-root11.json,audit-math12.json,
 independent-root11-raw-audit.json,independent-math12-raw-audit.json,
 independent-root11-interpretation.txt,raw-rule-attribution.json}.
+
+## Whisper singleton regression: identical reported shapes, physical cause pending
+
+Two full-context CONTROL/SELECT with-plan captures freeze manifest bd06a254 with
+71 pins, using the unchanged singleton binary 102a9e03 and current timing input,
+flags and own references. Both 6,040-entry reports pass exact own and cross-output
+checks, independently audited (12,080 entries total). SELECT changes 639 reported
+programs; every observed changed prefix is filtered FusedIntersect.
+
+Both LessThan4 states have 99 zero-output entries and one distinct reported plan
+per mode. GJ has 23 stages; the alternate has 22. Its new logical first stage
+binds LessThan physical columns0..4 and has exactly ONE scalar Op column0 probe.
+It replaces original stages17 (the private LessThan keys scan) and18 (the scalar
+output join); all other reported instructions remain byte-identical and in order.
+The entire state0/state1 reported programs are equal after bijective renaming of
+generated variables in both modes. This rules out a visible reported-shape or
+multi-probe-width difference, not different atom identities, constraints, internal
+maps, physical DVO order or actual work: those are absent from Plan JSON.
+
+There is no evidence here for wasted acquisition of later probes because this
+prefix has only one probe. A bounded physical trace is being prepared to separate
+prefix/index/refinement work from later traversal before proposing an execution
+change. A separate offline structural check will ask how much opportunity comes
+from binding multiple shared variables versus moving one shared key and several
+private RHS keys forward. It is not an implemented gate or a named-rule exclusion.
+Artifacts: cached-singleton-whisper-plans/{audit.json,independent-raw-audit.json,
+independent-target-programs.txt}.
+
+The retained-cover source<=1 bypass separately freezes patch2727e2e3, manifest
+8ea45c64 and builder c55acb9f. It adds only an early optional decline before driver
+selection, preserving ordinary fused scanning/probing. The expanded existing
+fixture explicitly covers a ready empty scalar driver with a singleton cover:
+OFF can produce Some(empty), while ON falls back and still returns zero matches.
+Matched singleton, zero current, multi-row, stale/slow and partition cases remain.
+All four core configurations pass175 tests, bridge passes19 and fmt passes. Actual
+Cargo binary441330a0 is frozen, with full original source/index/status restored and
+independently accepted. Its 45-run three-mode timing screen is prepared separately
+from the rejected singleton-plan policy.
