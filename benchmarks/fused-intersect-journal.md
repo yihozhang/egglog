@@ -2211,3 +2211,33 @@ Independent evidence: scalar-only-production-root11-independent.json/.txt,
 scalar-only-production-root11-oracles-independent.json/.txt,
 scalar-only-production-math12-independent.json/.txt and
 scalar-only-production-validation-independent.txt under /tmp/fused-lab.
+
+## Hard128 repeat and shared-sort code-size hypothesis
+
+A second fifteen-pair original-input run starts with the candidate, balancing
+the combined thirty pairs to fifteen per execution order. It confirms +0.913%
+mean wall, +1.020% paired median, thirteen of fifteen slower. Across both batches,
+with every sample retained, the loss is +0.961% mean, +0.985% paired median,
+twenty-seven of thirty slower. Both combined order groups lose (+1.161%/+0.760%).
+Full frozen binary/input/helper/environment provenance passes independent audit.
+The existing exact root oracle applies to the same binaries. External validation
+stays pending while this default-GJ regression is unresolved.
+
+Read-only nm/objdump inspection matches all twelve run_plan monomorphizations by
+their complete symbols. Entry stack reservations are unchanged in five, +16 bytes
+in four and smaller in three; no broad stack growth is found. Their combined text
+grows only 900 bytes. The binary's text instead grows 115,760 bytes, of which
+114,257 bytes are 53 additional physical stable-sort bodies: twelve wrappers,
+twelve driftsort_main, twelve drift::sort and twelve quicksort bodies, plus five
+shared helpers. Each generic run_plan calls its own sort wrapper. This establishes
+code duplication, not a causal explanation of the Hard128 timing change.
+
+A small follow-up will put the descriptor sort in one private, concrete-slice
+helper with lifetime parameters only, retaining the all-scalar guard and row loop.
+The intent is to share the comparator's sort instantiation without forced inline
+attributes, padding or a new sorting algorithm. Its code size and performance
+still need measurement; no change is retained yet.
+
+Artifacts: scalar-only-production-hard128-repeat-independent.json/.txt;
+scalar-only-code-layout/evidence-note.txt, evidence.json, sort-call-evidence.json
+and per-symbol disassemblies. All paths are under /tmp/fused-lab.
