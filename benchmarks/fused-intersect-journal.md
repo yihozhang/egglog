@@ -4441,3 +4441,101 @@ constant-key-placement-performance-pilot/{audit-screen.json,
 independent-raw-audit.json,independent-rule-interpretation.json,
 independent-rule-interpretation.txt};interpret-constant-key-placement-pilot.py;
 runtime-private-payload-credit-overlap.txt.
+
+
+## Actual placement work and pending logical-prefix credit
+
+Frozen additive observer42f4a151 (manifest5dccad2d) follows the exact six-patch
+FIRST3+constant-keyV2+placement+original-activation stack. It adds bounded
+all-stage logical/physical visit counts and actual sort-start/end exposure
+counters, with no policy, counterfactual sort, lookup, size read or clock change.
+The actual executor/sorter suffixes remain unchanged. One new test checks the
+real sorter OFF/ON identity, pending logical-prefix exposure, initial nonexposure,
+explicit bounds and independence from the original helper counters.
+
+Four full legacy captures (prefix/positioned x observerOFF/ON, helperON throughout)
+passed both audits: 4,620 ordered entries, 536 target report entries, 268 ON scopes,
+225 pins, exact own/cross outputs and observer-pair plans. All134 old prefix helper
+records match by entry and group shape. No overflow/identity conflict. Binary
+894975786ce3a8dd50345f5f113eb8adafcf9056f6e3584be623bdcfaba806c3;
+runner3a2ad9b036b1d2789d2afee4387102f89df234395b9508c2629971f25f571377.
+Root build passed174 core x4 configurations,19 bridge,fmt and exact restoration.
+
+The earlier logical dtype-order hypothesis does not describe these executions:
+dtype ?a visit counts AND physical-position histograms are identical in every
+Mul/Sum entry. Mul dtype totals213, mostly physical4 (207 calls); Sum totals129,
+mostly physical3 (120 calls). Moving its logical position did not move its actual
+execution in these captures.
+
+Sum has a concrete work reduction. Filtered calls6957->5703 and total stage
+visits13166->11912 fall by exactly1254, entirely a_stride calls4180->2926.
+Every other stage's total visits is unchanged. Original cover rows393657->282928;
+selected/requested/projected7299->6045. Sorts4880->3626; start6 sorts1672->418,
+while starts0/1/5 stay45/44/3119. Six zero entries account for all changed visit
+counts:22/6,30/6,37/5,49/5,57/6,63/5. In each of the last three, out_stride remains
+225 calls but moves physical6->5; a_stride225@5->0, and helper calls451->226.
+Selected rows are546->321,560->335,562->337 respectively. The observed execution
+never reaches a_stride after the earlier out_stride stage in those variants;
+these counters do not identify which ordinary probe/continuation prevents it.
+
+Mul moves work in opposing directions. Filtered calls11441->11473 (+32), total
+stage visits13260->15226 (+1966), including1934 extra payload-scan invocations.
+Original cover rows488808->489256; selected/requested/projected13099->13131.
+Total sorts remain9999, with range-start6 3254->2997,7 1643->1771,9 0->129.
+At49/3: b_stride161->1 and out_stride161->0, helper calls484->163, selected525->204.
+At49/5: a_stride0->161 and b_stride0->161, helper162->484, selected203->525.
+At22/4: b_stride129->1 and out_stride129->0, helper388->131, selected401->144.
+At22/6: a_stride0->129 and b_stride0->129 plus two payload scans0->129 each,
+helper130->388, selected143->401. Thus the opposite timing signs have distinct
+observed work patterns, without attributing their elapsed costs to these counts.
+
+Logical-prefix exposure is confirmed. Mul seeded-pending events23165->18053,
+actual-next9811->9811; Sum7954->6700, actual-next4835->3581. EVERY recorded seeded
+cover credit has min=max2, corresponding to the normal key+private-payload width.
+Totals are31119->24753 exposed pending groups and14646->13392 actual next choices.
+These are group-events, not unique sorts; multiple groups can be exposed per sort.
+Mul10/0 confirms the specific shape example: a_stride executes once at physical1,
+shape executes97 times at physical5; the real start4 sort exposes shape once with
+credit2, but does not choose it immediately next. Shape logical0 exposure is55
+in both Mul placements and44 in both Sum placements. All four positive entries
+have unchanged per-stage visit counts and helper totals, though some positions
+change. The small positive-entry timing changes therefore are not explained by
+fewer measured helper or stage calls.
+
+For auditability, filtered groups' pending/seeded/chosen totals (prefix->positioned):
+Mul shape120/55/48 ->120/55/49; a_stride5966/5853/4286 ->5100/4986/4863;
+b_stride9709/9595/1933 ->8352/8115/3256; out7776/7662/3544 ->9999/4897/1643.
+Sum shape89/44/44 ->89/44/44; a_stride3208/3119/3119 ->3433/3344/1865;
+out4880/4791/1672 ->3401/3312/1672.
+
+Separate prior uninstrumented pilot: Sum saves0.943261ms; Mul saves0.007036ms
+net after opposing gains/losses. Mul49/3 -335.157us vs49/5 +326.424us;
+22/4 -267.854us vs22/6 +264.550us. Sum57/6 -184.224us,63/5 -181.263us,
+49/5 -150.780us. No trace elapsed values were used. Those prior timings and the
+current counters are aligned evidence, not per-operation time attribution.
+
+Exposure establishes that seeded credit reaches a physically pending group.
+Actual-next establishes the real selected stage, not a counterfactual winner.
+The observer does not prove the payload unit caused that choice or that removing
+it would help. It does not record per-stage x sort-start joint samples, ordinary
+probe failures, source/index build costs or accepted suffix frames. No new policy
+is inferred here. Complete entry/stage data and prior timing pins are in
+runtime-position-interpretation.json; full text is runtime-position-interpretation.txt.
+
+The next causal ablation will exclude private payload slots from the filtered
+cover's refinement-credit update, counting each cover slot used by any probe
+only once. It will preserve probe credits, score reads, logical-prefix seeding,
+cadence, scalar/scan-only/materialized contributions and the runtime helper.
+Use canonical prefix placement on the original four-patch base, without either
+observer or the rejected placement change. The comparison is strict GJ versus
+prefix+helper versus that same plan with shared-only cover credit. This is an
+explicit test of an exposed hypothesis, not an inference that credit2 is wrong.
+
+Artifacts: constant-key-position-observation/{manifest.json,
+position-observation.patch,README.txt}; constant-key-position-observation-build/
+{manifest.json,independent-build-audit.json};
+constant-key-position-observation-prepared/runner-manifest.json;
+constant-key-position-observation-diagnostics/{audit.json,
+independent-raw-audit.json,independent-acceptance-note.txt,
+runtime-position-interpretation.json,runtime-position-interpretation.txt,
+runtime-journal-ready-observation.txt};runtime-analyze-constant-key-position.py.
