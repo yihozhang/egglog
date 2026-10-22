@@ -3803,3 +3803,69 @@ Artifacts: native-catalog-cover-census/{manifest.json,README.txt};
 native-catalog-cover-census-build/independent-build-audit.json;
 native-catalog-cover-census-diagnostics/{audit.json,independent-raw-audit.json,
 runtime-interpretation.json,runtime-interpretation.txt}.
+
+
+## Catalog-only policy: large live-Min win, modest Pure query loss
+
+The uninstrumented trial is deliberately smaller than the census stack. Patch
+96b29faa (manifest 416893ee) uses only clean strategy/live-cover/bridge controls
+and adds 84 executor lines plus nine read-only catalog API lines. Static source
+comparison confirms the native planning behavior matches the earlier stack with
+its extra flags disabled. No retained-root preparation or diagnostics remain.
+
+For a filtered, unpartitioned fused stage, select the smallest supported actual
+scalar driver. If its key count is smaller than the cover, inspect an existing
+published current catalog; decline on missing/uninitialized/stale state or when
+the complete candidate union reaches the cover size. Otherwise intersect physical
+IDs with the current cover, sort them, and retain all original cover/probe/live/
+slow checks. Scan-only stages bypass the helper. No diagnostic limits, alternative
+driver search, refresh, new index, or other threshold is introduced.
+
+One independent ordered-action fixture covers Small/Packed drivers, dense/sparse
+physical sources, deleted rows retained in the catalog, normal predicates/fanout,
+missing/uninitialized/stale fallbacks, unchanged insertion counts and partition
+bounds. Its setup was corrected before freezing to avoid holding an extra catalog
+Arc across table mutation. Build c5dfa693 passes all 169 core tests in off/on,
+all 19 bridge tests and fmt. Actual Cargo binary 3c85af56 and exact original
+source/index/status restoration pass independent checks.
+
+Frozen timing plan 6015523d pins 52 artifacts. The same binary compares catalog
+off/on in full Llama Pure and live-Min, three paired timed repetitions plus two
+warmups, both execution orders, CPU24/j1/--no-decomp. All 20 reports / 76,540
+ordered entries pass full own native and within-strategy counts/flags/final-size
+checks. Both panels, all samples, provenance and every paired/per-rule statistic
+are independently accepted. Archived outputs are correctness oracles only;
+these time-only reports do not establish historical plan or timing equivalence.
+
+| Strategy | Query off -> on | Query change | Wall off -> on | Wall change |
+| --- | ---: | ---: | ---: | ---: |
+| Pure | 502.825 -> 510.334ms | +1.493% | 721.449 -> 723.579ms | +0.295% |
+| live-Min | 474.930 -> 251.893ms | -46.962% | 693.284 -> 466.376ms | -32.729% |
+
+Min wins query and wall in all three pairs and both order groups. Its sigmoid
+rule saves 114.450ms (-74.62%) and expert-index marker saves 86.721ms (-76.32%),
+together 90.2% of the 223.038ms query saving. Both improve in zero-output and
+positive-output entries. The expert rule was outside the six-rule census.
+Pure loses query in all three pairs and both order groups; its wall result is
+mixed with an order sign flip. Pure's two GEMM rules still save 6.467ms combined
+(about 5.1% each, all pairs), but batch-collapse adds 2.417ms, FEFE Mul/Add add
+3.155ms, and several pair/grow rules add further costs. Repeated declined attempts
+are plausible from the earlier census, but uninstrumented timings cannot price
+that mechanism separately from successful unhelpful applications or later cache
+reuse. No causal component-timer claim is made. The six previously censused rules
+collectively save Pure 2.311ms; rules outside that census add 9.820ms, so the old
+census cannot explain its main net regression. Across all Pure entries, zero-
+output work adds 5.128ms and positive-output work adds 2.381ms. Min saves
+183.532ms on zero-output entries and 39.506ms on positive-output entries.
+
+This is a substantial within-Min result, not a universal policy win and not a
+comparison with default GJ. No promotion or new gate follows from this screen.
+Next: same unchanged binary on full Qwen/eggcc/CYK live-Min and precisely selected
+Hard128 Ramp/Ramp and Whisper batched-beta live-Min contexts with existing own
+oracles. Full-native Hard/Whisper timeouts are not replaced by claims about their
+selected-rule captures. Default-path codegen overhead would require a fresh clean
+binary comparison; toggling an inactive flag in one binary cannot establish it.
+
+Artifacts: catalog-cover-prefilter-build/independent-build-audit.json;
+catalog-cover-prefilter-performance/{audit.json,independent-raw-audit.json,
+independent-acceptance-note.txt}; catalog-native-base-assessment/assessment.txt.
