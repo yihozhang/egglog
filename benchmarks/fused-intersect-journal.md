@@ -1133,3 +1133,64 @@ math12, and has exact detailed count validation. Retain the documented
 sub-percent default costs, including root Qwen, as tradeoffs. The retained
 patch adds only an explanatory comment to the measured condition; no
 experimental strategy overrides, admission rules, or flags are promoted.
+
+
+## Fixed singleton-source rejection and exact Ramp isolation
+
+`fixed-keys-beta-safety` (15 with-plan diagnostic runs) and
+`fixed-keys-root11-pilot` (55 bounded one-sample attempts) all complete.
+Independent audit reads all 70 reports and 427,912 entries: ordered counts,
+changed flags, aggregate counts, and final sizes agree. All five fixed beta
+plans exactly reproduce GJ, while the prior policy changes only the selected
+rule and actually emits filtered fusion. The frozen binary predates the
+retained cadence patch; this isolates the admission change.
+
+Rejecting structurally singleton keys removes 86.5-93.6% of the prior
+large-model query penalty, including an untargeted paged FlashInfer loss
+(34.05 -> 17.52 ms, GJ 17.66 ms). Sigmoid/expert local gains remain.
+Nevertheless fixed-wait still loses to matched GJ: Llama +5.8%, paged
++5.2%, Qwen +7.2%, Qwen3 +11.9%, Whisper +4.9% query. Residual cublaslt
+cost is about 4.0/4.3/4.8/10.2/14.7 ms across those workloads, chiefly
+zero-output batched layout rules. No-wait does not remove the problem.
+The other six cases are broadly neutral in this discovery sample. Keep
+this prototype unpromoted and inspect residual selected covers before
+extending the proof or adding another estimate-based gate.
+
+`ramp-arithmetic-isolation` selects each of three exact rules independently
+on Hard32 and Hard128, GJ/Pure/liveMin with payload deferral, bridge ordering,
+and filtered cadence. Five timed repetitions and one warmup yield 108
+successful reports; every ordered entry/changed flag and final size matches
+GJ. Equal-lanes Pure is consistently faster locally: Hard32
+1.214 -> 1.010 ms (-16.8%), Hard128 3.068 -> 2.399 ms (-21.8%), all five
+pairs and both order groups. Whole-query changes are +0.29%/-0.22%, wall
++0.06%/-0.13%: too small to claim meaningful workload acceleration.
+
+The similar ramp-pair rule is +4.5% on Hard32 but -3.2% on Hard128, all
+pairs in each direction. Divisible-lanes is +8.5%/+2.4%, every pair slower.
+Live MinCover is substantially worse: equal-lanes 24.93/160.44 ms, ramp-pair
+31.30/167.78 ms, divisible-lanes about 3.8/19.67 ms. This excludes a blanket
+three-rule admission policy. Equal-lanes is the replicated Pure candidate;
+plan traces must identify which grouping and orientation produce the gain.
+Unlike the first two rules, divisible-lanes has no relationally shared lane:
+its lane variables meet only in a primitive condition.
+
+
+Untimed residual diagnostics (`fixed-residual-loss-plans`, three GJ/fixed
+pairs) identify MMul(MIter,k) in all three batched layout patterns. Its
+own estimate is 450, key domains [1,20], bound 20. The second key varies
+through Sum; this is not a missed nested-constant proof. The fused stage
+probes Sum on both grouped keys. In contrast, the eight model marker plans
+that improved probe other atoms on only one grouped key at a time. A narrow
+next ablation leaves a proven-fixed key scalar when another probe contains
+both it and a varying grouped key. The two-key case can return exact GJ;
+higher-arity cases can retain fusion of the remaining varying keys.
+
+The six `ramp-equal-lanes-plans` captures also revise the hypothesized cause.
+Pure first restricts the operator through AddOrSub, then scans Bop to bind
+both constructor outputs, probes Ramp/Broadcast on those outputs, and only
+then joins their lanes through Broadcast. Live MinCover omits AddOrSub as a
+cover and starts Broadcast/Ramp, delaying the operator restriction until
+last. Plans are identical across sizes and counts agree. The next useful
+ablation is Bop's remaining two shared key columns after preserving the
+unary-domain operator as a scalar key anchor. Private Ramp-key fusion is
+not the demonstrated cause of this PureSize gain.
