@@ -1984,3 +1984,51 @@ journal-ready-independent.txt, native-policy-interpretation.json/.txt;
 probe-order-fixture/three-probe-tests.patch;
 probe-order-policy/adaptive-followup-assessment.txt. All experiment source
 remains temporary and the user source diff is unchanged.
+
+## Failure-driven move-to-front ordering is rejected
+
+The feedback experiment starts from stable length order and, after a failed
+probe and frame rollback, moves that descriptor to the front for the next cover
+row. State is local to one invocation; there are no counters, clocks, thresholds,
+extra lookups or replanning. Fixed controls retain their original iterator loop
+behind one mode branch per cover row. This temporary implementation changes only
+filtered FusedIntersect. All 175 core tests pass in seven configurations, including
+the same three-probe oracle with adaptive GJ/PK; formatting passes and source is
+restored. Frozen binary egglog-probe-order-feedback SHA 6fc91e9f66cf185c69d3b8359da26a529799280d41e5780669d5ea62bdd6f2ca;
+policy 2e3486f4, fixture 94dab1a3, builder a045423b.
+
+All 240 native runs pass the hardened audit: twelve panels, four modes, three
+timed runs plus two warmups, 847,320 exact ordered entries, all prior own-mode
+and within-strategy fingerprints, and complete provenance. CPU24/j1/no-decomp,
+5-second watchdog and 32 GiB guard remain unchanged. All seven driver exits
+are zero. Comparisons use this one binary, not historical timing baselines.
+
+Performance decisively rejects feedback ordering. Eggcc live-MinCover query
+rises 14.932% against original, 12.278% against length and 15.501% against
+scalar-first, all three pairs and both execution orders. The helper costs
+470.634/486.492/468.247/565.074 ms for off/length/scalar/adaptive. Relative to
+length, its 238 zero-output entries add 54.752 ms (+13.856%) and 120 positive
+entries add 23.830 ms (+26.086%); both splits lose every pair. The helper is
+20.067% slower than original. This is not an eggcc snapshot discrepancy.
+
+Llama/Qwen adaptive query also loses to length order in every native pair:
+Pure +1.734%/+1.688%, live-MinCover +5.981%/+6.455%. The latter's sigmoid and
+expert marker rules add 19.709/29.137 ms. Hard32 Pure and both CYK panels lose
+roughly 2% against original. RMS still beats original, but its target loses
+1.504% against length in every pair. Eggcc Pure's helper remains 11.891%
+faster than original yet loses 1.947% against length. No confirmation or
+production promotion is warranted. These measurements establish a bad policy;
+they do not isolate descriptor movement, rejection-order thrashing, or lazy
+index effects as its cause.
+
+Next test a narrower static policy: sort by length only when every requested
+probe is scalar, leaving mixed-width stages in their planned order. This keeps
+the successful all-scalar PK ordering exactly and avoids directly comparing
+heterogeneous tuple/scalar key counts. It adds no threshold or statistics.
+Use the original single-traversal policy base, removing the failed adaptive
+loop and macro entirely. The existing oracle remains sufficient.
+
+Artifacts: native-probe-order-feedback/independent-feedback-audit.json/.txt,
+journal-ready-independent.txt, native-feedback-interpretation.json/.txt;
+probe-order-feedback/feedback-policy.patch. All experiment code remains
+temporary; the production workspace retains only the original user edits.
