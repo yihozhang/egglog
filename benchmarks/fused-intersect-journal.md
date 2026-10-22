@@ -1924,3 +1924,63 @@ journal-ready-independent.txt, native-rule-interpretation.json/.txt,
 eggcc-helper-zero-entry-attribution.json; eggcc-probe-order-plans/manifest.json
 and probe-width-analysis.json/.txt. The unchanged production workspace still
 contains only the original user's source edits.
+
+## Scalar-first ordering repairs one regression but gives back other gains
+
+The bounded three-mode comparison completes all 180 runs: seven native cases,
+twelve strategy panels, original/length/scalar-first ordering, three timed runs
+plus two warmups. The independent audit accepts all 635,490 ordered entries,
+all within-strategy fingerprints and prior own-strategy references, and the
+complete command/environment/input/binary/patch provenance. All seven drivers
+exit zero. Runs use CPU24, j1, --no-decomp, time-only reports, 5-second watchdog
+and 32 GiB guard. No cross-binary timing comparisons enter the conclusions.
+
+The frozen binary is egglog-probe-order-policy, SHA 9d98cd685705e333e4012eaede02e64a1994835eef5ad40fc11435e96c1b2e64.
+Policy be0cb15d replaces the previous length-only flag patch after the same
+eight-base stack. Test-only patch 94dab1a3 adds an independent three-probe
+relational oracle: reversed tuple/cover projections, three descriptor rotations,
+partial failures followed by success, stale and slow-constraint rejection,
+payload fanout, and existence-only versus retained-row probes at one/four
+workers. Fresh access families follow each forced stage order. All 175 core
+tests pass in five configurations (off, length/scalar with GJ and PK); formatting
+passes and the exact original source diff is restored.
+
+Scalar-first improves eggcc live-MinCover query/wall by 3.004%/2.361% relative
+to length order, all three pairs and both execution-order groups. The helper
+rule falls 496.540 -> 477.986 ms, saving 18.554 ms (3.737%); its 238 zero-output
+entries save 19.552 ms while 120 positive entries add 0.998 ms. All iterations
+95-101/ordinal2 improve in all three pairs. Against original ordering, however,
+the helper gains only 1.031% with two of three pairs faster; whole query is
+-0.928%. This repairs the length-order loss, not a confirmed large new win.
+
+PureSize exhibits the opposite tradeoff. Eggcc's helper rises 44.839 ->
+48.485 ms with scalar-first, +8.133% relative to length order, all three pairs
+and both orders; zero-output entries account for 94.8% of that loss. It still
+beats original order by 6.307%. Llama/Qwen Pure query loses 1.257%/1.588%
+relative to length order, every pair. Qwen Pure also loses to original order:
++0.823% query and +0.964% wall, all three pairs and both order groups. Requested
+width alone is therefore insufficient; no general sorting policy is promoted.
+
+Other local benefits remain: Llama/Qwen live-MinCover scalar query improves
+1.843%/2.265% against original, every pair. RMS Pure retains its target gain
+(-14.735%, all three), essentially matching length order. Whisper beta has no
+target improvement; its whole-query movements cannot be attributed to the
+small beta target. CYK live-MinCover scalar wall rises 1.213% in every pair,
+while query is only +0.340% with mixed signs. These are native-plan results,
+not evidence that default GJ now reaches filtered FusedIntersect.
+
+Next bounded experiment starts from length order and, after a failed probe
+and rollback, moves that descriptor to the front for the next cover row.
+It uses only observed rejection, local to one invocation, without counters,
+clocks, thresholds, extra probes or replanning. The archive review found no
+prior controlled failure-driven filtered-Fused ordering attempt; earlier
+"adaptive probing" meant driver reversal. Risks include descriptor movement
+and thrashing when rejecting predicates alternate. Keep original key/prepared
+ordinals, cover traversal and action order. This is a new experiment, not a
+retained policy or proof that packed first-level cardinality caused the loss.
+
+Artifacts: native-probe-order-policy/independent-policy-audit.json/.txt,
+journal-ready-independent.txt, native-policy-interpretation.json/.txt;
+probe-order-fixture/three-probe-tests.patch;
+probe-order-policy/adaptive-followup-assessment.txt. All experiment source
+remains temporary and the user source diff is unchanged.
