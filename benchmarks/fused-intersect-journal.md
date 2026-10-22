@@ -3481,3 +3481,24 @@ establish a useful net timing improvement. No further threshold or low-level
 variant sweep is warranted from this result. Keep the bounded Whisper physical
 trace as the next investigation. Artifacts: retained-cover-singleton-guard-timing/
 {audit-screen.json,independent-screen-raw-audit.json}.
+
+The source rules explain a distinction hidden by the reported table names: in
+state0, LoopStart occupies the outer body ICons head and LoopInput's Op the inner
+head; state1 swaps those positions. This is visible at tests/header/
+luminal-header.egg lines5258--5289. It establishes different connectivity, not
+which physical work causes the cost. State1 ordinal2 entries alone contribute
+44.953ms of its 50.626ms penalty. The trace will retain atom identities and actual
+stage positions rather than infer them from normalized Plan JSON.
+
+An offline fixed-candidate restriction to at least two distinct shared variables
+keeps 748/805 changed Llama entries (29 descriptions, observed selected-entry
+query delta -0.813ms) and 713/756 Qwen entries (24 descriptions, -0.861ms).
+It vetoes 57 Llama entries (-0.0002ms) and 43 Qwen entries (+0.0028ms). For Whisper
+it keeps only 32/639 entries (seven MSub descriptions, +0.009ms) and vetoes 607
+(25 descriptions, +50.204ms), including the good and bad LessThan4 orientations.
+These are associations from the current run, not predicted rerun gains; changing
+shared index use can change other work. The check vetoes the fixed candidate and
+does not search for a replacement cover. Dominant Hard128 Float and Python
+Program_function_two shapes have multiple shared variables, so this restriction
+does not obviously address those losses. No gate is implemented or promoted.
+Artifact: cached-singleton-performance/offline-shared-variable-gate.{json,txt}.
