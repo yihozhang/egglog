@@ -170,3 +170,116 @@ original cached stages if uniqueness later disappears: semantically valid, but
 not a guaranteed performance fallback to GJ. A retained version needs an
 explicit unfused fallback. Also test borrowing an immediately consumed terminal
 leaf's rows, avoiding an Arc without changing action batching.
+
+## Uniqueness gate and private-payload extension
+
+Cached-index uniqueness preserves the binary benefit and avoids repeated-key
+losses. Corrected runner, three timed runs plus one warmup, one thread, CPU 24:
+`/tmp/fused-lab/binary-unique-confirm` compares modes in the same frozen binary.
+Equal-size fanout 1: GJ 63.3 ms, ungated fused 39.1 ms, gated 40.5 ms. Fanout 8:
+GJ 17.2 ms, ungated 23.9 ms, gated 17.1 ms. With 100:1 imbalance, gated query time
+is 13.7–13.8 ms versus GJ 17.9–18.0 ms. On the fanout 8 smaller-side swap, gated
+15.9 ms matches GJ 16.0 ms; ungated takes 26.9 ms. These runs also enable borrowed
+terminal leaves; that change alone has no demonstrated local workload benefit.
+
+Four transition fixtures validate uniqueness becoming duplication and returning,
+for either smaller side, both sides, and a mutation with unchanged table size.
+A fifth warms the R join-key index before compiling the cached rule. Every
+iteration's match count and cumulative output-size snapshot matches its oracle
+for GJ, fixed/smaller fusion, and gated fusion. Artifacts:
+`binary-transitions-check`, `binary-warm-transition-check`. These are correctness
+runs, not performance confirmation. Stale original fused fallback remains the
+performance caveat described above.
+
+The schema-only and cached-index binary gates remain roughly neutral/slower on
+the 11 local workloads; no basis for promoting them as a broad improvement.
+Raw `binary-{unique,cached-unique}-local.json`. Full core tests pass: 171/171,
+including primary tuple probes, stale rows, cancellation, materialization, and
+parallel fused fixtures.
+
+Two broader modes fuse exactly one shared variable with schema-determined
+private payloads, preserving all other GJ variables. `private-unique` always
+chooses an eligible cover; `private-small-unique` also requires its initial
+size <= every incident relation. With factor 4 refresh, they regress, including
+python +61%/+11%, llama +29%/+20%, luminal +20%/+15%. Without refresh, small
+private fusion is mostly neutral but luminal +34%. Existing llama reports have
+910 structurally eligible covers across 112 rules, whose total measured time is
+only 10.8 ms; this particular shape has limited upside there. Static selection
+still fails when an earlier selective GJ stage shrinks a probe but not the cover.
+
+Streaming an eligible serial terminal fused scan directly into action batches
+avoids a row buffer, while retaining the factorized/parallel alternatives.
+Standalone `off-stream-local.json` is neutral/slower; no promotion. Prototype
+and tests remain available for evaluation, not accepted performance changes.
+Next experiment reverses a fused scan at execution time when a much smaller
+probe's distinct keys can look up cover rows by their unique primary key. It
+requires no stage recompilation, and preserves current cover-subset membership.
+
+## Execution-time driver reversal
+
+A scalar-primary-key prototype enumerates a much smaller probe's distinct keys
+and looks up the cover row, checking membership in the current cover subset.
+It preserves sparse/dense headers, stale-row rejection, probe fanout, and tail
+refinement without rebuilding stages. A later version supports permuted complete
+primary keys and validates extra leader values. Tiny exact tuple probes gained
+bounded duplicate-aware enumeration so they can also drive this branch.
+Focused differential coverage plus the full core suite pass (174 tests).
+
+The six primary-key binary fixtures in `primary_binary_inputs` isolate this
+from replanning (refresh factor 0). Three measured runs and one warmup:
+
+| Case | GJ query | Fixed fused | Runtime reversal |
+| --- | ---: | ---: | ---: |
+| Equal, unique keys | 55.5 ms | 36.7 ms | 37.3 ms |
+| R smaller, S fanout 8 | 26.9 ms | 22.6 ms | 23.0 ms |
+| R much larger, 50% misses | 10.4 ms | 69.2 ms | 4.8 ms |
+| R larger, S fanout 8 | 15.0 ms | 43.7 ms | 11.6 ms |
+| Selective prefix, fanout 64 | 1.9 ms | 116.8 ms | 1.8 ms |
+| R size swap, fanout 8 | 15.2 ms | 27.8 ms | 11.5 ms |
+
+All exact fixture counts pass. Raw: `primary-reverse-confirm`. Allowing DVO to
+estimate this reversed driver's residual size makes little difference here.
+On the 11 real workloads it reduces the private-cover python regression from
++740% to +2%, but private-cover fusion still regresses luminal +31% and larger
+model workloads +7–13%. Same-incidence key-pair modes remain neutral/slower.
+These are not accepted broad performance changes.
+
+Untimed reports show a concrete eligibility gap: `nth_from_end(list, n)` has a
+constant n column omitted from the bound projection. Schema uniqueness accepts
+it, but the reverse prototype cannot reconstruct constant primary-key columns,
+so it still scans the whole cover. This accounts for two large zero-match
+regressions in luminal. All per-rule per-iteration match totals in these reports
+agree. Stage-info currently emits null stage statistics, so it supplies no
+physical visit/index/probe counters; conclusions beyond plan shape are limited.
+
+## New priority: math-microbenchmark, 12 iterations
+
+At the user's request, focus on math before requiring broad workload gains.
+`/tmp/fused-lab/math12.egg` differs from `tests/math-microbenchmark.egg` only by
+`(run 11)` -> `(run 12)`. It retains printed sizes and stats. The dedicated
+`math_compare.py` clears inherited experimental variables, freezes binaries,
+interleaves treatments, and records wall time, search/action, merge, rebuild,
+per-rule counts, per-iteration counts, and final table sizes. All runs retain
+`--no-decomp -j 1`, CPU 24; seminaive evaluation stays enabled.
+
+Initial screen, three timed runs plus one warmup (`math12-initial`): baseline
+9.2605 s wall / 2.0259 s summed rule time; same-binary GJ 9.2840 / 2.0443 s;
+smaller-side cached binary fusion 9.6543 / 2.1958 s. Its query penalty is mainly
+Add associativity (+12.2% per match), distribution (+5.1%), and Mul associativity
+(+17.2%) versus same-binary GJ. Baseline rebuild is about 5.0 s and merge 2.1 s;
+iteration 12 accounts for nearly all of the work. Final sizes agree exactly
+(Add 11,396,002; Mul 4,188,378). Binary fusion produces stable but slightly
+different per-rule match counts beginning at iteration 7; this is an
+order-sensitive result, not a strict match-count oracle pass. The count changes
+are too small to explain the timing penalty.
+
+PureSize and MinCover free-join strategies, with and without payload scheduling,
+all exceeded the initial 10-second watchdog. That cutoff is too close to the
+baseline to rank them. A separate 60-second diagnostic is running; PureSize
+has also exceeded that bound. Existing free join is applied only to default GJ
+rules by the temporary strategy switch; explicit rebuild strategies are intact.
+Math has 4 one-atom rules (already MinCover), 18 binary rules, and 2 triangles.
+Eight binary constructor-output joins are the main targets; their shared key
+usually is not a primary key, so the reversal prototype does not help them.
+Investigate repeated payload projection and grouped terminal execution while
+preserving GJ's factorization, rather than applying whole-cover fusion blindly.
