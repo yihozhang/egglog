@@ -3354,3 +3354,66 @@ fallbacks unchanged. Pure's leading decline counts are 265,911 driver-not-smalle
 261,103 unpublished and 55,067 no-scalar. This motivates one separate minimal
 bypass experiment; it does not establish a measured gain or justify a threshold
 sweep. The singleton alternate screen remains separate.
+
+## Cached singleton timing: local model gains, broad policy rejected
+
+Frozen screen 34865a2c pins 143 files and uses binary 102a9e03 throughout.
+Root11 then math12 run serially, with three timed repetitions and two warmups
+per off/control/select mode, CPU24/j1/no-decomp. All 180 reports and 1,057,050
+ordered entries pass full own clean-GJ and current-mode output checks. Independent
+raw replay accepts every pin, command, result fingerprint and paired statistic.
+No sample or benchmark is excluded. The original source remains restored.
+
+| Case | SELECT/OFF query | SELECT/OFF report wall | SELECT/CONTROL query |
+| --- | ---: | ---: | ---: |
+
+| hardboiled_conv1d_32 | +0.371% | +0.353% | -0.828% |
+
+| hardboiled_conv1d_128 | +2.075% | +1.588% | +2.054% |
+
+| luminal-llama | -4.189% | -0.215% | -3.014% |
+
+| python_array_optimize | +2.669% | +0.026% | +2.580% |
+
+| cykjson | +0.520% | +0.434% | -0.347% |
+
+| eggcc-extraction | -3.209% | -1.374% | +0.888% |
+
+| llama | -1.965% | +0.608% | -1.961% |
+
+| paged_llama | -0.457% | +0.070% | -1.281% |
+
+| qwen | -1.502% | +0.261% | -2.242% |
+
+| qwen3_moe | -1.469% | +0.753% | -1.438% |
+
+| whisper | +15.803% | +9.015% | +15.701% |
+
+| math12 | -0.049% | -1.276% | -0.580% |
+
+
+The root11 sum of case means regresses SELECT/OFF query +4.671% and wall +1.518%;
+SELECT/CONTROL query +5.068% and wall +1.456%. Llama/Qwen query gains hold in all
+three pairs, but net report wall does not improve. Eggcc's mean net gain largely
+comes from CONTROL/OFF drift, not consistent selection benefit. Math's query is
+essentially neutral, and its wall mean is order-sensitive (median -0.013%); with
+zero census opportunities, this does not support a fused-plan speedup claim.
+
+Whisper is decisively adverse: all three SELECT/CONTROL pairs lose, in both
+orders. One zero-output rule, unroll LessThan body trips=4 state=1, grows from
+0.7713ms to 51.3978ms (+50.6265ms), accounting for 97.76% of the whole-query
+penalty. Its state0 counterpart improves 0.542ms. The fixed census candidate for
+both is atom9 LessThan, compile physical size1, four PK columns and live columns
+0..4, with 99/99 complete singleton witnesses. This is independent metadata by
+description, not an ActionId-to-execution mapping. Late state1 ordinal2 entries
+lose most: iteration140 grows about 10.35us to 5.603ms; iteration134 about 10.09us
+to 5.286ms. Every aligned result remains zero in all three pairs. Singleton cover
+size alone therefore does not bound the cost of the resulting execution program.
+Separate Whisper reported-plan captures are being prepared to locate the cause.
+
+This broad singleton policy is not a production candidate and does not proceed
+to the external81 performance suite. Preserve its local gains and sharply defined
+failure for investigation; no name-based exclusion or threshold tuning is applied.
+Artifacts: cached-singleton-performance/{audit-root11.json,audit-math12.json,
+independent-root11-raw-audit.json,independent-math12-raw-audit.json,
+independent-root11-interpretation.txt,raw-rule-attribution.json}.
