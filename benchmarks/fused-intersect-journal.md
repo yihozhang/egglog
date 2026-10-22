@@ -1750,3 +1750,30 @@ index reuse, and existing cross-planner match differences remain relevant.
 Require evidence of useful potential before adding two-plan runtime machinery.
 Artifacts: ramp-dvo-diagnostics/independent-dvo-audit.json/.txt,
 concrete-late-records.json/.txt, and ramp-dvo-prior-policy-review.txt.
+
+The two fixed offline gates do not establish a good runtime policy. Selecting
+PK only when Bop's root is no larger than either incident Ramp selects 9/34,
+10/34, and 9/36 target entries at Hard32/Hard128/resize, mostly the Bop-delta
+ordinal. Historical additive target changes versus GJ are -3.84%/-7.55%/+2.67%
+(37.8/182.3 microseconds saved, then 127.2 microseconds lost). This drops useful
+medium-size Hard work while retaining a losing resize ordinal-2 component.
+
+Using the existing SMALL_RESIDUAL=8 boundary instead, and falling back only
+when an incident root is tiny and Bop is larger, retains 29/34, 29/34, and
+30/36 PK entries. V2 additive target changes are -11.58%/-16.82%/+11.84%
+(114.0/406.1 microseconds saved, 564.1 microseconds lost). It recovers
+28.4/72.8/229.8 microseconds relative to always-PK, preserving the useful
+medium-size Hard entry, but most resize loss remains. V1 gives nearly the
+same result. Both execution-order groups retain these signs. Entries without
+a root snapshot explicitly use GJ rather than invented cardinalities.
+
+These estimates combine existing per-entry times; they exclude selection and
+dual-preparation overhead and cannot model changed cross-rule index reuse or
+representative evolution. No threshold sweep was performed. Do not implement
+or promote two-plan machinery from these insufficient estimates. The small
+remaining physical question is whether ordering the already-built fused
+probers by key count helps the forced PK path's large-left/tiny-right shape;
+earlier general runtime screens predate this PK policy. Verify that archive
+distinction before repeating a probe-order experiment. Offline artifacts:
+offline-root-size-policy.json/.txt and offline-tiny-root-policy-v1/v2.json/.txt
+under ramp-dvo-diagnostics.
